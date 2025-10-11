@@ -1,0 +1,50 @@
+{
+	"mcpServers": {
+		"sequential-thinking": {
+			"command": "npx",
+			"args": ["-y", "mcp-sequentialthinking-tools"],
+			"env": {
+				"MAX_HISTORY_SIZE": "1000"
+			}
+		},
+		"perplexity-mcp": {
+			"env": {
+				"PERPLEXITY_API_KEY": "TODO-API-KEY"
+			},
+			"command": "npx",
+			"args": ["-y", "server-perplexity-ask"]
+		},
+		"context7": {
+			"command": "npx",
+			"args": ["-y", "@upstash/context7-mcp"],
+			"type": "stdio"
+		},
+		"serena": {
+			"command": "uvx",
+			"args": [
+				"--from",
+				"git+https://github.com/oraios/serena",
+				"serena",
+				"start-mcp-server",
+				"--context",
+				"ide-assistant",
+				"--project",
+				"${PWD}",
+				"--tool-timeout",
+				"20",
+				"--mode",
+				"planning",
+				"--mode",
+				"one-shot",
+				"--enable-web-dashboard",
+				"false"
+			],
+			"type": "stdio"
+		},
+		"consult7": {
+			"command": "uvx",
+			"args": ["consult7", "google", "TODO-API-KEY"],
+			"type": "stdio"
+		}
+	}
+}

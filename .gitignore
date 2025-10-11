@@ -11,3 +11,8 @@ pulls.json
 Gemfile.lock
 .gems
 .venv
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
+.mcp.json
