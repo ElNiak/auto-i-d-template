@@ -16,3 +16,16 @@ Gemfile.lock
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 .mcp.json
+
+# Plugin artifacts
+plugin/__pycache__/
+plugin/**/__pycache__/
+plugin/**/*.pyc
+plugin/**/*.pyo
+plugin/venv/
+plugin/.venv/
+plugin/lib/venv/
+.rfc-generation-state.json
+.rfc-trace.json
+.mypy_cache
+node_modules
