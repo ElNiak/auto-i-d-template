@@ -29,3 +29,26 @@ plugin/lib/venv/
 .rfc-trace.json
 .mypy_cache
 node_modules
+
+# Claude plugin artifacts
+.claude/__pycache__/
+.claude/**/__pycache__/
+.claude/**/*.pyc
+.claude/**/*.pyo
+.claude/lib/venv/
+.claude/.coordinator-errors.log
+.claude/.preserve-conflicts.log
+.claude/.hook-history.json
+.claude/.hook-errors.log
+
+# Generated RFC artifacts (keep rfc-map.json but ignore temp files)
+docs/generated/*.tmp
+docs/generated/*.bak
+docs/*.tmp
+docs/*.bak
+
+# Test artifacts
+tests/__pycache__/
+tests/**/__pycache__/
+.behave_cache/
+test_output/

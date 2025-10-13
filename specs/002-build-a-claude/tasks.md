@@ -90,11 +90,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Implement rfc_mapper.py library in `.claude/lib/rfc_mapper.py` for managing rfc-map.json traceability (code ↔ RFC section mappings)
-- [ ] T009 [P] Implement preserve_edits.py library in `.claude/lib/preserve_edits.py` for handling @preserve-start/end markers
-- [ ] T010 [P] Implement impact_analyzer.py library in `.claude/lib/impact_analyzer.py` for analyzing code changes and RFC impact
-- [ ] T011 Create coordinator agent instruction file in `.claude/agents/coordinator.md` with workflow orchestration logic
-- [ ] T012 Setup Behave environment configuration in `tests/environment.py` with setup/teardown for test repos
+- [X] T008 Implement rfc_mapper.py library in `.claude/lib/rfc_mapper.py` for managing rfc-map.json traceability (code ↔ RFC section mappings)
+- [X] T009 [P] Implement preserve_edits.py library in `.claude/lib/preserve_edits.py` for handling @preserve-start/end markers
+- [X] T010 [P] Implement impact_analyzer.py library in `.claude/lib/impact_analyzer.py` for analyzing code changes and RFC impact
+- [X] T011 Create coordinator workflow instructions in `.claude/instructions/coordinator.md` with workflow orchestration logic
+- [X] T012 Setup Behave environment configuration in `tests/environment.py` with setup/teardown for test repos
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
