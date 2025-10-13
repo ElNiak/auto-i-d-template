@@ -1,0 +1,65 @@
+{
+  "name": "RFC Documentation Generator",
+  "shortDescription": "Generate IETF-compliant RFC documentation from source code",
+  "longDescription": "A comprehensive Claude-Code plugin that automatically generates and maintains RFC-style technical documentation from your source code. Uses specialized AI agents with Serena MCP for semantic code analysis, producing IETF-compliant documentation with bidirectional traceability, incremental updates, and preservation of manual edits.",
+  "category": "documentation",
+  "tags": [
+    "rfc",
+    "documentation",
+    "ietf",
+    "technical-writing",
+    "code-analysis",
+    "traceability",
+    "semantic-analysis"
+  ],
+  "version": "0.1.0",
+  "author": {
+    "name": "i-d-template Contributors",
+    "url": "https://github.com/martinthomson/i-d-template"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martinthomson/i-d-template"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/martinthomson/i-d-template",
+  "screenshots": [],
+  "features": [
+    "Generate RFC-style documentation from source code",
+    "Incremental updates that preserve manual edits",
+    "Bidirectional code-to-specification traceability",
+    "Automated documentation quality checks",
+    "Support for large codebases (1M+ lines)",
+    "External standards reference detection",
+    "IETF compliance validation"
+  ],
+  "requirements": {
+    "claude_code_version": ">=1.0.0",
+    "python": ">=3.11",
+    "mcp_servers": ["serena"],
+    "external_tools": ["make", "git"]
+  },
+  "commands": [
+    {
+      "name": "/rfc-generate",
+      "description": "Generate initial RFC documentation from source code"
+    },
+    {
+      "name": "/rfc-update",
+      "description": "Update existing RFC documentation after code changes"
+    },
+    {
+      "name": "/rfc-validate",
+      "description": "Validate RFC compliance and completeness"
+    },
+    {
+      "name": "/rfc-analyze-impact",
+      "description": "Analyze impact of code changes on documentation"
+    }
+  ],
+  "documentation": {
+    "installation": "See docs/plugin-guide.md",
+    "quickstart": "See specs/002-build-a-claude/quickstart.md",
+    "api": "See specs/002-build-a-claude/data-model.md"
+  }
+}

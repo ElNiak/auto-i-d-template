@@ -1,0 +1,75 @@
+{
+  "name": "rfc-documentation-generator",
+  "version": "0.1.0",
+  "description": "Generate and maintain RFC-style documentation from source code using Claude-Code agents with Serena MCP for semantic analysis",
+  "author": "i-d-template Contributors",
+  "license": "MIT",
+  "repository": "https://github.com/martinthomson/i-d-template",
+  "keywords": ["rfc", "documentation", "ietf", "code-analysis", "serena-mcp"],
+  "hooks": {
+    "preToolUse": [
+      {
+        "script": ".claude/hooks/pre_tool_validate.py",
+        "toolPattern": "Write|Edit",
+        "enabled": true,
+        "blocking": false,
+        "description": "Validate RFC cross-references before file modifications"
+      },
+      {
+        "script": ".claude/hooks/pre_bash_enforce.py",
+        "toolPattern": "Bash",
+        "enabled": true,
+        "blocking": true,
+        "description": "Enforce Make target usage for RFC build commands"
+      }
+    ],
+    "postToolUse": [
+      {
+        "script": ".claude/hooks/post_tool_sync.py",
+        "toolPattern": "Write|Edit|Bash",
+        "enabled": true,
+        "blocking": false,
+        "description": "Synchronize rfc-map.json after code changes"
+      }
+    ],
+    "userPromptSubmit": [
+      {
+        "script": ".claude/hooks/user_intent_detect.py",
+        "enabled": true,
+        "blocking": false,
+        "description": "Detect RFC-related intent and load context"
+      }
+    ],
+    "sessionStart": [
+      {
+        "script": ".claude/hooks/session_start_check.py",
+        "enabled": true,
+        "blocking": false,
+        "description": "Check for stale RFC documentation"
+      }
+    ]
+  },
+  "config": {
+    "mandatory_sections": [
+      "abstract",
+      "introduction",
+      "terminology",
+      "interfaces",
+      "behavior"
+    ],
+    "validation_strictness": "standard",
+    "staleness_threshold_days": 30,
+    "performance_targets": {
+      "initial_10k_lines_minutes": 2,
+      "initial_100k_lines_minutes": 20,
+      "initial_1m_lines_minutes": 60,
+      "incremental_any_size_minutes": 10,
+      "on_save_impact_seconds": 2
+    }
+  },
+  "dependencies": {
+    "python": ">=3.11",
+    "mcp_servers": ["serena"],
+    "external_tools": ["make", "kramdown-rfc", "xml2rfc", "git"]
+  }
+}

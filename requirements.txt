@@ -6,3 +6,8 @@ rfc-tidy
 svgcheck
 toml
 xml2rfc
+
+# RFC Documentation Generator Plugin dependencies (Python 3.11+)
+behave>=1.2.6
+jsonschema>=4.17.0
+GitPython>=3.1.30

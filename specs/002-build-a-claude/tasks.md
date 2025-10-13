@@ -19,17 +19,68 @@
 
 ---
 
+## Phase 0: RFC Examples Collection (Reference Material)
+
+**Purpose**: Collect and organize example RFCs (both IETF and company-defined) across different application profiles to serve as reference material for documentation generation
+
+**Why**: Having curated RFC examples helps the formatter agent understand proper RFC structure, terminology, and formatting conventions for different types of technical documentation.
+
+### Application Profiles
+
+- [X] T000a Create RFC examples directory structure: `.claude/rfc-examples/<profile>/`
+- [X] T000b [P] Research and collect REST API RFCs in `.claude/rfc-examples/rest-apis/`
+  - **IETF**: RFC 9110 (HTTP Semantics), RFC 9112 (HTTP/1.1), RFC 6570 (URI Templates), RFC 7807 (Problem Details)
+  - **Company**: Google API Design Guide, AWS API Gateway patterns, Stripe API documentation patterns
+- [X] T000c [P] Research and collect Network Protocol RFCs in `.claude/rfc-examples/network-protocols/`
+  - **IETF**: RFC 793 (TCP), RFC 8446 (TLS 1.3), RFC 9000 (QUIC), RFC 791 (IP)
+  - **Company**: Google QUIC implementation docs, Cloudflare protocol documentation
+- [X] T000d [P] Research and collect Security Protocol RFCs in `.claude/rfc-examples/security-protocols/`
+  - **IETF**: RFC 5246 (TLS 1.2), RFC 6749 (OAuth 2.0), RFC 7519 (JWT), RFC 8017 (PKCS #1)
+  - **Company**: Auth0 security patterns, Okta protocol documentation, Microsoft identity platform specs
+- [X] T000e [P] Research and collect Data Format RFCs in `.claude/rfc-examples/data-formats/`
+  - **IETF**: RFC 8259 (JSON), RFC 7049 (CBOR), RFC 4506 (XDR), RFC 7464 (JSON Text Sequences)
+  - **Company**: Protocol Buffers (Google), Apache Avro, MessagePack specifications
+- [X] T000f [P] Research and collect Authentication RFCs in `.claude/rfc-examples/authentication/`
+  - **IETF**: RFC 7617 (HTTP Basic), RFC 6750 (OAuth Bearer), RFC 8471 (Token Binding), RFC 4559 (SPNEGO)
+  - **Company**: GitHub OAuth implementation, AWS Signature Version 4, Azure AD authentication patterns
+- [X] T000g [P] Research and collect Distributed Systems RFCs in `.claude/rfc-examples/distributed-systems/`
+  - **IETF**: RFC 7540 (HTTP/2), RFC 7049 (CBOR-RPC), RFC 6455 (WebSocket)
+  - **Company**: gRPC protocol (Google), Apache Kafka wire protocol, NATS messaging protocol
+- [X] T000h [P] Research and collect Database RFCs in `.claude/rfc-examples/databases/`
+  - **IETF**: RFC 2616 (HTTP for RESTful DB access patterns)
+  - **Company**: PostgreSQL wire protocol, MySQL protocol documentation, Redis protocol (RESP)
+- [X] T000i [P] Research and collect Cloud-Native RFCs in `.claude/rfc-examples/cloud-native/`
+  - **Company**: Kubernetes API conventions, Docker Registry HTTP API, OpenTelemetry protocol specs
+- [X] T000j Create RFC examples index in `.claude/rfc-examples/index.json` with mappings:
+  ```json
+  {
+    "profiles": {
+      "<profile-name>": {
+        "ietf": ["RFC####", ...],
+        "company": [
+          {"org": "Google", "title": "...", "url": "..."},
+          ...
+        ]
+      }
+    }
+  }
+  ```
+
+**Checkpoint**: Reference material collected - formatter agent can reference these examples for structure and style
+
+---
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create plugin directory structure: `.claude/commands/`, `.claude/agents/`, `.claude/hooks/`, `.claude/lib/`, `.claude/templates/`
-- [ ] T002 [P] Create plugin manifest in `.claude/plugin.json` with metadata (name, version, description)
-- [ ] T003 [P] Create marketplace distribution config in `.claude/marketplace.json`
-- [ ] T004 [P] Create test directory structure: `tests/features/`, `tests/steps/`, `tests/fixtures/`
-- [ ] T005 [P] Initialize Python environment with `requirements.txt` for hooks (Python 3.11+)
-- [ ] T006 [P] Create RFC skeleton template in `.claude/templates/rfc-skeleton.md` following kramdown-rfc format
-- [ ] T007 [P] Create section templates: `.claude/templates/sections/terminology.md`, `.claude/templates/sections/interfaces.md`, `.claude/templates/sections/behavior.md`
+- [X] T001 Create plugin directory structure: `.claude/commands/`, `.claude/agents/`, `.claude/hooks/`, `.claude/lib/`, `.claude/templates/`
+- [X] T002 [P] Create plugin manifest in `.claude/plugin.json` with metadata (name, version, description)
+- [X] T003 [P] Create marketplace distribution config in `.claude/marketplace.json`
+- [X] T004 [P] Create test directory structure: `tests/features/`, `tests/steps/`, `tests/fixtures/`
+- [X] T005 [P] Initialize Python environment with `requirements.txt` for hooks (Python 3.11+)
+- [X] T006 [P] Create RFC skeleton template in `.claude/templates/rfc-skeleton.md` following kramdown-rfc format
+- [X] T007 [P] Create section templates: `.claude/templates/sections/terminology.md`, `.claude/templates/sections/interfaces.md`, `.claude/templates/sections/behavior.md`
 
 ---
 
