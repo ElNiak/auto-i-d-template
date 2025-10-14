@@ -12,13 +12,23 @@
 When `/rfc-generate` is invoked, follow this sequence:
 
 ```
+0. Check for existing checkpoints → Offer recovery (T020e)
+   ↓
 1. Parse command arguments
    ↓
-2. Spawn Parser Agent → Extract code structure
+1b. Scout phase → Validate prerequisites (T020c)
+   ↓
+2. Spawn Parser Agent → Extract code structure (T020a)
+   ↓
+2b. Checkpoint parser → Validate & save (T020b + T020e)
    ↓
 3. Spawn Analyzer Agent → Semantic analysis
    ↓
+3b. Checkpoint analyzer → Validate & save (T020b + T020e)
+   ↓
 4. Spawn Formatter Agent → Generate RFC sections
+   ↓
+4b. Checkpoint formatter → Validate & save (T020b + T020e)
    ↓
 5. Aggregate results → Assemble RFC document
    ↓
@@ -26,7 +36,126 @@ When `/rfc-generate` is invoked, follow this sequence:
    ↓
 7. Spawn Validator Agent → IETF compliance check
    ↓
+7b. Lint phase → Validate before writing (T020d)
+   ↓
 8. Write output files (RFC draft + rfc-map.json)
+```
+
+### Checkpoint Recovery (T020e)
+
+**Purpose**: Enable recovery from failures using saved checkpoints
+
+#### Step 0: Check for Existing Checkpoints
+
+At the START of `/rfc-generate`, check for recent checkpoints:
+
+```python
+import os
+import json
+import glob
+from datetime import datetime
+
+# Check for checkpoint files (last 24 hours)
+checkpoint_dir = ".claude/.checkpoints/"
+recent_checkpoints = {}
+
+if os.path.exists(checkpoint_dir):
+    # Find recent checkpoints for each agent
+    for agent_type in ["parser", "analyzer", "formatter"]:
+        pattern = f"{checkpoint_dir}{agent_type}-*.json"
+        checkpoints = sorted(glob.glob(pattern), key=os.path.getmtime, reverse=True)
+
+        if checkpoints:
+            # Get most recent checkpoint
+            latest_checkpoint = checkpoints[0]
+            mtime = os.path.getmtime(latest_checkpoint)
+            age_hours = (datetime.now().timestamp() - mtime) / 3600
+
+            if age_hours < 24:  # Only consider recent checkpoints
+                recent_checkpoints[agent_type] = {
+                    "path": latest_checkpoint,
+                    "age_hours": age_hours
+                }
+
+# Offer recovery if checkpoints found
+if recent_checkpoints:
+    print("\n🔍 Found recent checkpoints:")
+    for agent, info in recent_checkpoints.items():
+        print(f"   - {agent}: {info['path']} ({info['age_hours']:.1f}h ago)")
+
+    print("\nOptions:")
+    print("  1. Resume from checkpoints (skip completed agents)")
+    print("  2. Start fresh (ignore checkpoints)")
+
+    # In non-interactive mode, default to option 2
+    use_checkpoints = False  # Set based on user input or flag
+
+    if use_checkpoints:
+        print("\n✅ Resuming from checkpoints...\n")
+    else:
+        print("\n✅ Starting fresh...\n")
+else:
+    use_checkpoints = False
+```
+
+#### Loading Checkpoint Data
+
+When resuming from checkpoints:
+
+```python
+loaded_checkpoints = {}
+
+if use_checkpoints:
+    for agent_type, info in recent_checkpoints.items():
+        with open(info['path'], 'r') as f:
+            checkpoint_data = json.load(f)
+
+        # Verify integrity
+        results = checkpoint_data['results']
+        results_json = json.dumps(results, sort_keys=True)
+        computed_hash = hashlib.sha256(results_json.encode()).hexdigest()
+
+        if computed_hash == checkpoint_data['hash']:
+            loaded_checkpoints[agent_type] = results
+            print(f"✅ Loaded {agent_type} checkpoint (hash verified)")
+        else:
+            print(f"⚠️  {agent_type} checkpoint hash mismatch - will regenerate")
+            loaded_checkpoints.pop(agent_type, None)
+
+# Skip completed agents
+skip_parser = "parser" in loaded_checkpoints
+skip_analyzer = "analyzer" in loaded_checkpoints
+skip_formatter = "formatter" in loaded_checkpoints
+```
+
+#### Agent Skip Logic
+
+When agents are skipped due to checkpoints:
+
+```python
+# In Step 2 (Parser)
+if skip_parser:
+    print("⏭️  Skipping parser (using checkpoint)")
+    parser_results = loaded_checkpoints["parser"]
+else:
+    # Normal parser spawn logic
+    ...
+
+# In Step 3 (Analyzer)
+if skip_analyzer:
+    print("⏭️  Skipping analyzer (using checkpoint)")
+    analyzer_results = loaded_checkpoints["analyzer"]
+else:
+    # Normal analyzer spawn logic
+    ...
+
+# In Step 4 (Formatter)
+if skip_formatter:
+    print("⏭️  Skipping formatter (using checkpoint)")
+    formatter_results = loaded_checkpoints["formatter"]
+else:
+    # Normal formatter spawn logic
+    ...
 ```
 
 ### Step-by-Step Instructions
@@ -39,45 +168,200 @@ Extract from user command:
 - **Section filter**: Which sections to generate (default: all)
 - **Options**: Additional flags (e.g., `--verbose`, `--skip-validation`)
 
-#### Step 2: Spawn Parser Agent
+#### Step 1b: Validate Prerequisites (T020c - Scout Phase)
+
+**Purpose**: Fail fast by discovering and testing code before expensive operations
+
+1. **Check Serena MCP Availability**:
+```python
+# Test Serena MCP with simple operation
+try:
+    mcp__serena__list_dir(relative_path=".", recursive=false)
+    print("✅ Serena MCP available")
+except:
+    print("❌ Serena MCP required. Check MCP server status.")
+    exit(1)
+```
+
+2. **Scout Phase - Discover Code Files**:
+```python
+# Discover all files recursively
+all_files = mcp__serena__list_dir(
+    relative_path=target_paths,
+    recursive=true,
+    skip_ignored_files=true
+)
+
+# Filter code files by extension
+code_extensions = ['.py', '.js', '.ts', '.go', '.rs', '.java', '.cpp', '.h', '.c', '.cs', '.rb', '.php']
+code_files = [f for f in all_files if any(f.endswith(ext) for ext in code_extensions)]
+non_code_files = len(all_files) - len(code_files)
+
+# Count by extension for report
+extension_counts = {}
+for f in code_files:
+    ext = f.split('.')[-1]
+    extension_counts[ext] = extension_counts.get(ext, 0) + 1
+
+# Estimate LOC (rough estimate: 50 lines per file average)
+estimated_loc = len(code_files) * 50
+
+print(f"""
+📊 Scout Report:
+- Total files: {len(all_files)}
+- Code files: {len(code_files)} ({', '.join(f'.{ext}: {count}' for ext, count in extension_counts.items())})
+- Non-code files: {non_code_files} (skipped)
+- Estimated LOC: {estimated_loc:,}
+- Estimated time: ~{estimated_loc // 2000} minutes
+""")
+```
+
+3. **Test Parsability** (sample 1-2 files):
+```python
+# Test with first 2 code files
+sample_files = code_files[:2]
+parse_success = 0
+
+for sample_file in sample_files:
+    try:
+        overview = mcp__serena__get_symbols_overview(
+            relative_path=sample_file,
+            max_answer_chars=-1
+        )
+        if overview:
+            parse_success += 1
+    except Exception as e:
+        print(f"⚠️  Sample parse failed for {sample_file}: {e}")
+
+print(f"- Sample parse: ✅ {parse_success}/{len(sample_files)} files parsed successfully")
+```
+
+4. **Create Output Directories**:
+```bash
+mkdir -p docs/generated/
+mkdir -p .claude/.checkpoints/
+```
+
+5. **Abort Conditions**:
+```python
+if len(code_files) == 0:
+    print("❌ No analyzable code found in paths")
+    exit(1)
+
+if parse_success == 0:
+    print("❌ Code parsing failed. Check Serena MCP configuration")
+    exit(1)
+
+print("✅ Scout phase complete - ready to generate RFC\n")
+```
+
+#### Step 2: Spawn Parser Agent (T020a - Two-Phase Orchestration)
 
 **Prompt for Task tool**:
 ```
 Analyze code structure from the following paths: {paths}
 
-Use Serena MCP tools exclusively:
-- mcp__serena__get_symbols_overview for file-level structure
-- mcp__serena__find_symbol for detailed extraction
-- mcp__serena__search_for_pattern for content search
+Use TWO-PHASE extraction approach for token efficiency:
+
+Phase 1: Lightweight Symbol Index
+- Use mcp__serena__get_symbols_overview with include_body=false
+- Build index of ALL symbols with metadata (name, type, line, visibility)
+- Filter for public APIs based on LSP visibility metadata
+- Track phase_1_symbols count
+
+Phase 2: Detailed Extraction (Public APIs Only)
+- Use mcp__serena__find_symbol with include_body=true
+- Extract ONLY public symbols identified in Phase 1
+- Get full signatures, docstrings, parameters, constraints
+- Track phase_2_symbols count
+- Skip all private/protected symbols
 
 Extract:
 - Public functions and methods
-- Class definitions
+- Class definitions and interfaces
 - Type definitions
 - Constants and enums
-- Docstrings
+- Docstrings and signatures
+- Dependencies and provenance
+- Parameter constraints
+- Deprecation information
 
-Return JSON format:
+Return JSON format matching parser schema:
 {
-  "files": [
-    {
-      "path": "src/api.py",
-      "symbols": [
-        {
-          "name": "authenticate",
-          "type": "function",
-          "line": 42,
-          "signature": "def authenticate(user: str, password: str) -> bool",
-          "visibility": "public",
-          "docstring": "Authenticates a user..."
-        }
-      ]
-    }
-  ]
+  "summary": {
+    "files_analyzed": 15,
+    "public_apis": 23,
+    "types": 8,
+    "private_symbols_skipped": 47,
+    "phase_1_symbols": 70,
+    "phase_2_symbols": 23
+  },
+  "files": ["src/api.py", "src/types.ts"],
+  "symbols": [...],
+  "interfaces": [...],
+  "types": [...],
+  "errors": []
 }
 ```
 
-**Wait for parser agent completion**. Log progress: "✅ Parser completed: {count} symbols extracted"
+**Wait for parser agent completion**.
+
+#### Step 2b: Checkpoint Parser Output (T020b + T020e)
+
+**Purpose**: Save parser results for recovery and validation
+
+```python
+import sys
+import json
+import hashlib
+from datetime import datetime
+
+sys.path.insert(0, '.claude/lib')
+from schema_validator import validate_agent_output
+
+# Get parser results
+parser_results = {agent_output}
+
+# Validate against schema
+is_valid, message, errors = validate_agent_output("parser", parser_results)
+
+if not is_valid:
+    # Save invalid output for debugging
+    timestamp = int(datetime.now().timestamp())
+    invalid_path = f".claude/.checkpoints/parser-invalid-{timestamp}.json"
+
+    with open(invalid_path, 'w') as f:
+        json.dump(parser_results, f, indent=2)
+
+    print(f"❌ Parser output validation failed: {message}")
+    for error in errors:
+        print(f"  - {error}")
+    print(f"\n Debug: Invalid output saved to {invalid_path}")
+    exit(1)
+
+# Calculate SHA256 hash for integrity
+parser_json = json.dumps(parser_results, sort_keys=True)
+parser_hash = hashlib.sha256(parser_json.encode()).hexdigest()
+
+# Save checkpoint
+timestamp = int(datetime.now().timestamp())
+checkpoint_path = f".claude/.checkpoints/parser-{timestamp}.json"
+
+checkpoint_data = {
+    "timestamp": timestamp,
+    "hash": parser_hash,
+    "results": parser_results
+}
+
+with open(checkpoint_path, 'w') as f:
+    json.dump(checkpoint_data, f, indent=2)
+
+print(f"✅ Parser checkpoint saved: {checkpoint_path}")
+print(f"✅ Parser completed: {parser_results['summary']['public_apis']} public APIs extracted")
+print(f"   Phase 1: {parser_results['summary']['phase_1_symbols']} symbols indexed")
+print(f"   Phase 2: {parser_results['summary']['phase_2_symbols']} symbols detailed")
+print(f"   Private symbols skipped: {parser_results['summary']['private_symbols_skipped']}\n")
+```
 
 #### Step 3: Spawn Analyzer Agent
 
@@ -123,7 +407,64 @@ Return JSON format:
 }
 ```
 
-**Wait for analyzer agent completion**. Log: "✅ Analyzer completed: {relationships_count} relationships, {standards_count} standards detected"
+**Wait for analyzer agent completion**.
+
+#### Step 3b: Checkpoint Analyzer Output (T020b + T020e)
+
+**Purpose**: Save analyzer results for recovery and validation
+
+```python
+import sys
+import json
+import hashlib
+from datetime import datetime
+
+sys.path.insert(0, '.claude/lib')
+from schema_validator import validate_agent_output
+
+# Get analyzer results
+analyzer_results = {agent_output}
+
+# Validate against schema
+is_valid, message, errors = validate_agent_output("analyzer", analyzer_results)
+
+if not is_valid:
+    # Save invalid output for debugging
+    timestamp = int(datetime.now().timestamp())
+    invalid_path = f".claude/.checkpoints/analyzer-invalid-{timestamp}.json"
+
+    with open(invalid_path, 'w') as f:
+        json.dump(analyzer_results, f, indent=2)
+
+    print(f"❌ Analyzer output validation failed: {message}")
+    for error in errors:
+        print(f"  - {error}")
+    print(f"\nDebug: Invalid output saved to {invalid_path}")
+    exit(1)
+
+# Calculate SHA256 hash for integrity
+analyzer_json = json.dumps(analyzer_results, sort_keys=True)
+analyzer_hash = hashlib.sha256(analyzer_json.encode()).hexdigest()
+
+# Save checkpoint
+timestamp = int(datetime.now().timestamp())
+checkpoint_path = f".claude/.checkpoints/analyzer-{timestamp}.json"
+
+checkpoint_data = {
+    "timestamp": timestamp,
+    "hash": analyzer_hash,
+    "results": analyzer_results
+}
+
+with open(checkpoint_path, 'w') as f:
+    json.dump(checkpoint_data, f, indent=2)
+
+print(f"✅ Analyzer checkpoint saved: {checkpoint_path}")
+print(f"✅ Analyzer completed:")
+print(f"   Relationships: {len(analyzer_results['relationships'])}")
+print(f"   Behaviors: {len(analyzer_results['behaviors'])}")
+print(f"   External standards: {len(analyzer_results['external_standards'])}\n")
+```
 
 #### Step 4: Spawn Formatter Agent
 
@@ -156,7 +497,63 @@ Return markdown text with sections clearly marked:
 ...
 ```
 
-**Wait for formatter agent completion**. Log: "✅ Formatter completed: {section_count} sections generated"
+**Wait for formatter agent completion**.
+
+#### Step 4b: Checkpoint Formatter Output (T020b + T020e)
+
+**Purpose**: Save formatter results for recovery and validation
+
+```python
+import sys
+import json
+import hashlib
+from datetime import datetime
+
+sys.path.insert(0, '.claude/lib')
+from schema_validator import validate_agent_output
+
+# Get formatter results
+formatter_results = {agent_output}
+
+# Validate against schema
+is_valid, message, errors = validate_agent_output("formatter", formatter_results)
+
+if not is_valid:
+    # Save invalid output for debugging
+    timestamp = int(datetime.now().timestamp())
+    invalid_path = f".claude/.checkpoints/formatter-invalid-{timestamp}.json"
+
+    with open(invalid_path, 'w') as f:
+        json.dump(formatter_results, f, indent=2)
+
+    print(f"❌ Formatter output validation failed: {message}")
+    for error in errors:
+        print(f"  - {error}")
+    print(f"\nDebug: Invalid output saved to {invalid_path}")
+    exit(1)
+
+# Calculate SHA256 hash for integrity
+formatter_json = json.dumps(formatter_results, sort_keys=True)
+formatter_hash = hashlib.sha256(formatter_json.encode()).hexdigest()
+
+# Save checkpoint
+timestamp = int(datetime.now().timestamp())
+checkpoint_path = f".claude/.checkpoints/formatter-{timestamp}.json"
+
+checkpoint_data = {
+    "timestamp": timestamp,
+    "hash": formatter_hash,
+    "results": formatter_results
+}
+
+with open(checkpoint_path, 'w') as f:
+    json.dump(checkpoint_data, f, indent=2)
+
+print(f"✅ Formatter checkpoint saved: {checkpoint_path}")
+print(f"✅ Formatter completed:")
+print(f"   RFC content length: {len(formatter_results['rfc_content'])} chars")
+print(f"   Cross-reference mappings: {len(formatter_results['mappings'])}\n")
+```
 
 #### Step 5: Aggregate Results
 
@@ -184,30 +581,110 @@ from rfc_mapper import RFCMapper
 # Create new mapper
 mapper = RFCMapper("docs/rfc-map.json")
 
-# Add mappings from parser results
+# Add mappings from parser results using section mapping algorithm (T023)
 for file in parser_results["files"]:
     for symbol in file["symbols"]:
-        # Determine RFC section based on symbol type
-        if symbol["type"] in ["class", "interface"]:
-            section = "2"  # Terminology
-        elif symbol["type"] in ["function", "method"]:
-            section = "3"  # Interfaces
+        # Determine RFC section based on symbol type using comprehensive mapping algorithm
+        section, heading = determine_rfc_section(symbol)
 
         mapper.add_mapping(
             code_file=file["path"],
             code_symbol=symbol["name"],
             code_line=symbol["line"],
             rfc_section=section,
-            rfc_heading=determine_heading(section),
+            rfc_heading=heading,
             relationship="describes",
             confidence=1.0
         )
+
+def determine_rfc_section(symbol):
+    """
+    Map code element types to RFC sections (T023 - Section Mapping Algorithm).
+
+    Decision Tree:
+    1. Types, Interfaces, Enums, Constants → Section 2 (Terminology)
+    2. Public Functions, Methods, Classes → Section 3 (Interfaces)
+    3. Internal Logic, State Machines → Section 4 (Behavior)
+    4. Configuration, Patterns → Section 4 (Behavior)
+
+    Returns: (section_number, section_heading)
+    """
+    symbol_type = symbol.get("type", "").lower()
+    visibility = symbol.get("visibility", "public")
+    name = symbol.get("name", "")
+
+    # Section 2: Terminology - Types and Data Structures
+    if symbol_type in ["interface", "type", "enum", "constant"]:
+        return ("2", "Terminology")
+
+    # Section 2: Terminology - Type Classes (data carriers)
+    if symbol_type == "class" and ("Data" in name or "Model" in name or "Entity" in name):
+        return ("2", "Terminology")
+
+    # Section 3: Interfaces - Public APIs
+    if visibility == "public":
+        if symbol_type in ["function", "method"]:
+            return ("3", "Interfaces")
+        if symbol_type == "class":
+            return ("3", "Interfaces")
+
+    # Section 4: Behavior - Internal Logic
+    if visibility in ["private", "protected"]:
+        return ("4", "Behavior")
+
+    # Section 4: Behavior - Configuration
+    if symbol_type in ["variable", "config", "setting"]:
+        return ("4", "Behavior")
+
+    # Default: Section 3 (Interfaces) for ambiguous public symbols
+    return ("3", "Interfaces")
 
 # Save mappings
 mapper.save()
 ```
 
 Log: "✅ Created {mapping_count} cross-references in rfc-map.json"
+
+**Bidirectional Cross-Reference Validation (T022)**:
+
+After creating rfc-map.json, validate cross-references work in both directions:
+
+```python
+import re
+
+# 1. Extract CODE_REF markers from RFC
+code_ref_pattern = r'<!-- CODE_REF: ([^:]+):([^:]+):(\d+) -->'
+rfc_markers = re.findall(code_ref_pattern, formatter_results['rfc_content'])
+
+# 2. Extract mappings from rfc-map.json
+map_entries = [(m.code.file, m.code.symbol, m.code.line) for m in mapper.mappings]
+
+# 3. Check: All CODE_REF markers have corresponding rfc-map entries
+missing_in_map = []
+for file, symbol, line in rfc_markers:
+    if (file, symbol, int(line)) not in map_entries:
+        missing_in_map.append(f"{file}:{symbol}:{line}")
+
+# 4. Check: All rfc-map entries appear as CODE_REF markers in RFC
+missing_in_rfc = []
+for file, symbol, line in map_entries:
+    if (file, symbol, str(line)) not in rfc_markers:
+        missing_in_rfc.append(f"{file}:{symbol}:{line}")
+
+# 5. Report validation results
+if missing_in_map:
+    print("⚠️  Warning: CODE_REF markers without rfc-map entries:")
+    for ref in missing_in_map:
+        print(f"   - {ref}")
+
+if missing_in_rfc:
+    print("⚠️  Warning: rfc-map entries without CODE_REF markers:")
+    for ref in missing_in_rfc:
+        print(f"   - {ref}")
+
+if not missing_in_map and not missing_in_rfc:
+    print("✅ Cross-reference validation: All mappings bidirectional")
+```
 
 #### Step 7: Spawn Validator Agent (Optional)
 
@@ -236,6 +713,96 @@ Return validation report:
 ```
 
 **Non-blocking**: Continue even if warnings found. Log: "⚠️ Validator found {warning_count} warnings"
+
+#### Step 7b: Post-Processing Lint Phase (T020d)
+
+**Purpose**: Validate generated RFC before writing final output
+
+1. **Write RFC to Temporary File**:
+```python
+import tempfile
+
+# Create temp file for validation
+temp_rfc_path = ".claude/.temp-rfc.md"
+
+with open(temp_rfc_path, 'w') as f:
+    f.write(complete_rfc_draft)
+
+print("📝 Validating generated RFC...")
+```
+
+2. **Kramdown Syntax Validation**:
+```bash
+# Run kramdown-rfc lint (via Make)
+make lint RFC_FILE=.claude/.temp-rfc.md 2>&1
+```
+
+Parse output for syntax errors. If errors found:
+- Log errors with line numbers
+- Mark affected sections with `[SYNTAX ERROR]`
+- STOP execution (critical error)
+
+3. **XML2RFC Schema Validation**:
+```bash
+# Generate XML and validate schema
+make txt RFC_FILE=.claude/.temp-rfc.md 2>&1
+```
+
+If schema violations found:
+- Log errors with context
+- STOP execution (critical error)
+
+4. **Quality Gates**:
+```python
+# Check required sections
+required_sections = ["# Abstract", "# Introduction", "# Terminology", "# Interfaces", "# Behavior"]
+missing_sections = [sec for sec in required_sections if sec not in complete_rfc_draft]
+
+# Check RFC 2119 keyword usage
+import re
+lowercase_keywords = re.findall(r'\b(must|should|may)\b(?! [A-Z])', complete_rfc_draft)
+
+# Check for broken cross-references
+broken_refs = re.findall(r'\{\{#(\w+)\}\}', complete_rfc_draft)
+defined_anchors = re.findall(r'\{: #(\w+)\}', complete_rfc_draft)
+broken_refs = [ref for ref in broken_refs if ref not in defined_anchors]
+
+# Check security section marker
+has_security = "# Security Considerations" in complete_rfc_draft
+security_has_review = "[NEEDS MANUAL REVIEW]" in complete_rfc_draft if has_security else True
+```
+
+5. **Generate Validation Report**:
+```python
+print("\n📊 Validation Report:")
+print(f"  ✅ Kramdown Syntax: PASS" if kramdown_valid else f"  ❌ Kramdown Syntax: FAIL")
+print(f"  ✅ XML2RFC Schema: PASS" if xml_valid else f"  ❌ XML2RFC Schema: FAIL")
+print(f"  Quality Gates:")
+print(f"    {'✅' if not missing_sections else '❌'} Required sections: {'All present' if not missing_sections else f'Missing: {missing_sections}'}")
+print(f"    {'✅' if not broken_refs else '⚠️ '} Cross-references: {'All valid' if not broken_refs else f'Broken: {broken_refs}'}")
+print(f"    {'✅' if not lowercase_keywords else '⚠️ '} RFC 2119 keywords: {'Correct' if not lowercase_keywords else f'Found lowercase: {lowercase_keywords}'}")
+print(f"    {'✅' if security_has_review else '⚠️ '} Security review marker: {'Present' if security_has_review else 'Missing'}")
+```
+
+6. **Handle Errors**:
+```python
+# Critical errors (STOP)
+if not kramdown_valid or not xml_valid or missing_sections:
+    print("\n❌ CRITICAL ERRORS FOUND - Cannot proceed")
+    print(f"   Draft saved to: .claude/.draft-failed.md")
+
+    with open(".claude/.draft-failed.md", 'w') as f:
+        f.write(complete_rfc_draft)
+
+    exit(1)
+
+# Warnings only (continue)
+if broken_refs or lowercase_keywords or not security_has_review:
+    print("\n⚠️  WARNINGS FOUND - Review recommended before publication")
+
+# Clean up temp file
+os.remove(temp_rfc_path)
+```
 
 #### Step 8: Write Output Files
 

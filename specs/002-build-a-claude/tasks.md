@@ -110,24 +110,32 @@
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T013 [P] [US1] Create Behave feature file in `tests/features/generate.feature` with scenarios: (1) generate from clean repo, (2) select specific paths, (3) verify cross-references
-- [ ] T014 [P] [US1] Implement test steps in `tests/steps/generate_steps.py` for RFC generation scenarios
-- [ ] T015 [P] [US1] Create test fixture codebase in `tests/fixtures/sample-project/` with known structure
+- [X] T013 [P] [US1] Create Behave feature file in `tests/features/generate.feature` with scenarios: (1) generate from clean repo, (2) select specific paths, (3) verify cross-references
+- [X] T014 [P] [US1] Implement test steps in `tests/steps/generate_steps.py` for RFC generation scenarios
+- [X] T015 [P] [US1] Create test fixture codebase in `tests/fixtures/sample-project/` with known structure
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Create `/rfc-generate` slash command in `.claude/commands/rfc-generate.md` with arguments: paths, output file, sections filter
-- [ ] T017 [P] [US1] Implement parser agent in `.claude/agents/parser.md` using Serena MCP tools (get_symbols_overview, find_symbol, search_for_pattern)
-- [ ] T018 [P] [US1] Implement analyzer agent in `.claude/agents/analyzer.md` for semantic analysis via Serena MCP (find_referencing_symbols)
-- [ ] T019 [P] [US1] Implement formatter agent in `.claude/agents/formatter.md` for generating RFC sections in kramdown-rfc format
-- [ ] T020 [US1] Integrate agents in coordinator: spawn parser → analyzer → formatter, aggregate results
-- [ ] T021 [US1] Add path selection logic in coordinator to filter selected directories/files
-- [ ] T022 [US1] Implement cross-reference generation in formatter using rfc_mapper.py
-- [ ] T023 [US1] Add section generation logic: terminology from type definitions, interfaces from public APIs, behavior from implementation
-- [ ] T024 [US1] Implement kramdown-rfc frontmatter generation (docname, title, authors, category)
-- [ ] T025 [US1] Create rfc-map.json output with bidirectional code ↔ section mappings
-- [ ] T026 [US1] Add error handling for: empty paths, no analyzable code, Serena MCP unavailable
-- [ ] T027 [US1] Add logging throughout generation workflow for debugging
+- [X] T016 [US1] Create `/rfc-generate` slash command in `.claude/commands/rfc-generate.md` with arguments: paths, output file, sections filter
+- [X] T017 [P] [US1] Implement parser agent in `.claude/agents/parser.md` using Serena MCP tools (get_symbols_overview, find_symbol, search_for_pattern)
+- [X] T018 [P] [US1] Implement analyzer agent in `.claude/agents/analyzer.md` for semantic analysis via Serena MCP (find_referencing_symbols)
+- [X] T019 [P] [US1] Implement formatter agent in `.claude/agents/formatter.md` for generating RFC sections in kramdown-rfc format
+- [X] T020 [US1] Integrate agents in coordinator: spawn parser → analyzer → formatter, aggregate results
+  - [X] T020a [US1] Implement two-phase parser orchestration (Phase 1: lightweight index with include_body=false, Phase 2: detailed extraction for public APIs only with include_body=true)
+  - [X] T020b [US1] Create schema_validator.py library and add validation checkpoints (validate parser/analyzer/formatter outputs against JSON schemas before proceeding)
+  - [X] T020c [US1] Implement scout pre-processing phase (discover code files, test parsability, estimate LOC, create .claude/.checkpoints/ directory)
+  - [X] T020d [US1] Implement post-processing lint phase (validate kramdown syntax, XML2RFC schema, quality gates including RFC 2119 keyword checks)
+  - [X] T020e [US1] Add checkpointing system (save parser.json, analyzer.json, formatter.json to .claude/.checkpoints/ with SHA256 hashes, implement recovery from failure)
+- [X] T021 [US1] Add path selection logic in coordinator to filter selected directories/files
+- [X] T022 [US1] Implement cross-reference generation in formatter using rfc_mapper.py
+- [X] T023 [US1] Add section generation logic: terminology from type definitions, interfaces from public APIs, behavior from implementation
+  - [X] T023a [US1] Implement abstraction guidelines in section generation (specification language, not implementation details - focus on WHAT and WHY, not HOW)
+  - [X] T023b [US1] Auto-insert [NEEDS MANUAL REVIEW] markers (Security Considerations always, protocol design decisions, incomplete information areas)
+  - [X] T023c [US1] Generate optional sections when content available (use_cases, change_log, implementation_status, design_rationale)
+- [X] T024 [US1] Implement kramdown-rfc frontmatter generation (docname, title, authors, category)
+- [X] T025 [US1] Create rfc-map.json output with bidirectional code ↔ section mappings
+- [X] T026 [US1] Add error handling for: empty paths, no analyzable code, Serena MCP unavailable
+- [X] T027 [US1] Add logging throughout generation workflow for debugging
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - can generate initial RFC from codebase
 
