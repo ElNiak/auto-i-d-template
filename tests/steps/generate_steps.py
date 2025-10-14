@@ -14,7 +14,7 @@ from behave.runner import Context
 # Given Steps - Setup Test Conditions
 # ============================================================================
 
-@given('a clean test repository')
+@given('a clean repository for RFC generation')
 def step_clean_test_repository(context: Context):
     """Set up a clean test repository for generation tests"""
     # Test repository is set up in environment.py
@@ -25,7 +25,7 @@ def step_clean_test_repository(context: Context):
     context.command_output = None
 
 
-@given('the RFC generator plugin is installed')
+@given('the RFC generator plugin files are present')
 def step_plugin_installed(context: Context):
     """Verify the RFC generator plugin structure exists"""
     claude_dir = os.path.join(context.test_dir, '.claude')

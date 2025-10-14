@@ -197,42 +197,42 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T041 [P] [US3] Create Behave feature file in `tests/features/automation.feature` with scenarios: (1) pre-commit validation, (2) API change detection, (3) reviewer guidance
-- [ ] T042 [P] [US3] Implement test steps in `tests/steps/automation_steps.py` for hook scenarios
+- [X] T041 [P] [US3] Create Behave feature file in `tests/features/automation.feature` with scenarios: (1) pre-commit validation, (2) API change detection, (3) reviewer guidance
+- [X] T042 [P] [US3] Implement test steps in `tests/steps/automation_steps.py` for hook scenarios
 
 ### Implementation for User Story 3
 
-- [ ] T043 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_tool_validate.py` with tool matcher `Write|Edit`:
+- [X] T043 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_tool_validate.py` with tool matcher `Write|Edit`:
   - Extract file path from tool arguments (parse JSON input)
   - Check if file is tracked in rfc-map.json (any mappings reference this file)
   - Import and call `lib.impact_analyzer` to detect affected RFC sections (git diff + line tracking)
   - Display warning with affected sections if high-confidence matches found
   - Return JSON: `{"block": false, "message": "⚠️ Affects RFC §3.2...", "suggestion": "Run /rfc-analyze-impact"}`
   - Use Python logging for debugging
-- [ ] T044 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_bash_enforce.py` with tool matcher `Bash`:
+- [X] T044 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_bash_enforce.py` with tool matcher `Bash`:
   - Parse Bash command from tool arguments
   - Detect direct kramdown-rfc, xml2rfc, or mmark invocations using regex
   - Block execution if not invoked via Make targets
   - Return JSON: `{"block": true, "message": "Use 'make txt' instead of 'xml2rfc'", "suggestion": "..."}`
   - Allow-list: `make`, `git`, standard unix tools (configurable)
-- [ ] T045 [P] [US3] Implement PostToolUse hook in `.claude/hooks/post_tool_sync.py` with tool matcher `Write|Edit|Bash`:
+- [X] T045 [P] [US3] Implement PostToolUse hook in `.claude/hooks/post_tool_sync.py` with tool matcher `Write|Edit|Bash`:
   - Parse tool result to detect modified files
   - Import and call `lib.rfc_mapper.update_timestamps()` for affected code elements
   - Flag stale cross-references (code changed but RFC not updated)
   - Append changes to `.claude/.hook-history.json` for audit trail
   - Return JSON: `{"block": false, "message": "Updated rfc-map.json for 3 files"}`
-- [ ] T046 [US3] Implement UserPromptSubmit hook in `.claude/hooks/user_intent_detect.py`:
+- [X] T046 [US3] Implement UserPromptSubmit hook in `.claude/hooks/user_intent_detect.py`:
   - Pattern match user prompt for RFC-related keywords: `/rfc-`, "RFC", "documentation", "spec"
   - Load relevant memory files from `.claude/memory/` (codebase-overview.md, rfc-architecture.md)
   - Return JSON with injected context (Claude Code will prepend to conversation)
   - Log intent detection to `.claude/.hook-history.json` for telemetry
-- [ ] T047 [US3] Implement SessionStart hook in `.claude/hooks/session_start_check.py`:
+- [X] T047 [US3] Implement SessionStart hook in `.claude/hooks/session_start_check.py`:
   - Check last modification time of rfc-map.json using `os.path.getmtime()`
   - If > 30 days old (configurable threshold), display staleness warning
   - Suggest running `/rfc-update` to refresh documentation
   - Use `subprocess.run(["git", "status", "--porcelain"])` to check for uncommitted changes in docs/generated/
   - Return JSON: `{"block": false, "message": "RFC docs last updated 45 days ago..."}`
-- [ ] T048 [P] [US3] Add hook configuration in `.claude/plugin.json` with Claude Code native format:
+- [X] T048 [P] [US3] Add hook configuration in `.claude/plugin.json` with Claude Code native format:
   ```json
   {
     "hooks": {
@@ -292,7 +292,7 @@
   - Estimate severity based on section type (interfaces=BREAKING, behavior=COMPATIBLE, etc.)
   - Language-agnostic: works with Python, JS, Go, Rust, C++, any language
   - Must complete in <100ms for hook responsiveness
-- [ ] T049b [US3] Create `/rfc-analyze-impact` slash command in `.claude/commands/rfc-analyze-impact.md`:
+- [X] T049b [US3] Create `/rfc-analyze-impact` slash command in `.claude/commands/rfc-analyze-impact.md`:
   - Spawn analyzer agent that uses Serena MCP tools for deep semantic analysis
   - Use `find_symbol` to extract detailed signatures with full context
   - Use `find_referencing_symbols` to understand call graphs and dependencies
