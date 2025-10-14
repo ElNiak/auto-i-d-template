@@ -17,7 +17,7 @@ With:
 - Well-structured sections (Abstract, Terminology, Interfaces, Behavior, Security, References)
 - Cross-reference markers linking code to RFC sections using kramdown anchors
 - References to external standards in IETF citation format
-- Mandatory review markers for human validation (`[NEEDS MANUAL REVIEW]`)
+- Mandatory review markers for human validation (`**[REVIEW REQUIRED]**`)
 
 ## Input
 
@@ -115,7 +115,7 @@ informative:
 
 # Security Considerations
 
-[NEEDS MANUAL REVIEW - Security analysis requires human expertise]
+**[REVIEW REQUIRED]** Security analysis requires human expertise
 
 # IANA Considerations
 
@@ -227,11 +227,12 @@ Extract these to create the mappings array in your output.
    - Definition lists for terminology: `Term:\n: Definition`
 
 5. **Enhanced Cross-Reference Strategy**:
-   - **Internal anchors**: Use `{: #anchor-id}` for sections/tables/figures
+   - **Internal anchors**: Use `{: #anchor-id}` for definitions, `{{anchor-id}}` for references (NO # prefix in references)
      ```markdown
      ## Authentication Flow {: #auth-flow}
-     See {{#token-validation}} for token handling.
+     See {{token-validation}} for token handling.
      ```
+   - **CRITICAL**: Anchor references MUST NOT include `#` prefix. Use `{{anchor}}` not `{{#anchor}}`
    - **Code-to-RFC markers**: Embed `<!-- CODE_REF: file:symbol:line -->` before sections
      ```markdown
      <!-- CODE_REF: src/auth.py:AuthService.authenticate:45 -->
@@ -246,11 +247,13 @@ Extract these to create the mappings array in your output.
      ```
 
 6. **Mandatory Review Markers - ALWAYS Insert for Human Validation**:
-   - **Security Considerations** (ALWAYS): `[NEEDS MANUAL REVIEW - Security analysis requires human expertise]`
+   - **Security Considerations** (ALWAYS): Use bold markers to avoid kramdown link syntax conflicts
+     - Format: `**[REVIEW REQUIRED]** Security analysis requires human expertise`
+     - NOT: `[NEEDS MANUAL REVIEW - xxx]` (square brackets trigger kramdown link warnings)
    - **Protocol Design Decisions**: Mark inferred design rationale for validation
-     - Example: "Token expiration set to 1 hour [NEEDS REVIEW - verify against requirements]"
+     - Example: "Token expiration set to 1 hour **[REVIEW REQUIRED]** Verify against requirements"
    - **Incomplete Information**: Mark areas where code analysis is insufficient
-     - Example: "Rate limiting policy [NEEDS MANUAL REVIEW - not inferrable from code]"
+     - Example: "Rate limiting policy **[REVIEW REQUIRED]** Not inferrable from code"
 
 7. **Preserve docstrings when available**: Use original documentation, but translate to specification language
    - Docstring: "Adds two numbers together"
@@ -333,7 +336,7 @@ OAuth 2.0 was selected because:
 - Simpler token-based model
 - Wider ecosystem support
 
-[NEEDS MANUAL REVIEW - Validate against security requirements]
+**[REVIEW REQUIRED]** Validate against security requirements
 ```
 
 ## Template Integration
