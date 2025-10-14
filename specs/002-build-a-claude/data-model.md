@@ -44,8 +44,33 @@
 | `line_end` | integer | Yes | Ending line number | >= line_start |
 | `signature` | string | No | Function/class signature | Language-specific |
 | `docstring` | string | No | Documentation string | Extracted from code |
-| `visibility` | enum | Yes | Access level | Values: public, private, protected |
+| `visibility` | enum | Yes | Access level (from LSP) | Values: public, private, protected |
 | `language` | string | Yes | Programming language | Supported languages |
+| `dependencies` | string[] | No | Imported symbols/modules | Valid symbol IDs or paths |
+| `provenance` | enum | Yes | Definition source | Values: defined_here, re_exported, inherited |
+| `parameter_constraints` | Constraint[] | No | API validation rules | Type/range constraints |
+| `deprecation_info` | Deprecation | No | Deprecation status | Version, reason, alternative |
+| `usage_examples` | string[] | No | Example code snippets | From docstrings/tests |
+
+**Sub-Entities**:
+
+#### Constraint
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `parameter_name` | string | Yes | Parameter being constrained |
+| `constraint_type` | enum | Yes | Type of constraint |
+| `constraint_value` | string | Yes | Constraint specification |
+| `error_message` | string | No | Validation error message |
+
+**Constraint Types**: type_check, range, regex, custom
+
+#### Deprecation
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `is_deprecated` | boolean | Yes | Deprecation status |
+| `since_version` | string | No | Version when deprecated |
+| `reason` | string | No | Deprecation reason |
+| `alternative` | string | No | Recommended replacement |
 
 **Relationships**:
 - Referenced by multiple `Cross-References`
@@ -54,7 +79,7 @@
 
 ### 3. Cross-Reference
 
-**Description**: A bidirectional link between documentation sections and source code locations, maintaining line numbers and file paths.
+**Description**: A bidirectional link between documentation sections and source code locations, maintaining line numbers and file paths with staleness detection.
 
 **Fields**:
 | Field | Type | Required | Description | Validation |
@@ -65,11 +90,15 @@
 | `relationship_type` | enum | Yes | Type of relationship | Values: describes, implements, references, example |
 | `confidence` | float | Yes | Confidence score | 0.0 - 1.0 |
 | `last_synced` | timestamp | Yes | Last synchronization time | ISO 8601 format |
+| `file_checksum` | string | Yes | SHA256 of source file | 64 hex chars |
+| `git_commit` | string | No | Git commit hash at creation | Valid git hash (40 hex chars) |
+| `staleness_status` | enum | Yes | Reference validity | Values: fresh, stale, unknown |
 
 **Relationships**:
 - Links `RFC Document` sections to `Code Elements`
 - Stored in `rfc-map.json` for persistence
 - Used by `Impact Analyzer` for change detection
+- Staleness detected by comparing file_checksum with current file state
 
 ### 4. Documentation Section
 
@@ -81,11 +110,15 @@
 | `id` | string | Yes | Section identifier | Pattern: `\d+(\.\d+)*` |
 | `title` | string | Yes | Section title | Max 100 chars |
 | `content` | string | Yes | Section content | Markdown format |
-| `type` | enum | Yes | Section type | Values: abstract, intro, terminology, interfaces, behavior, security, iana, references |
+| `type` | enum | Yes | Section type | Values: abstract, intro, terminology, interfaces, behavior, security, iana, references, use_cases, change_log, implementation_status, design_rationale |
 | `required` | boolean | Yes | Is mandatory section | Based on config |
 | `generated` | boolean | Yes | Auto-generated flag | true/false |
 | `preserve_blocks` | PreserveBlock[] | No | Manual edit blocks | Valid markers |
 | `order` | integer | Yes | Display order | > 0 |
+
+**Section Types**:
+- **Standard IETF**: abstract, intro, terminology, interfaces, behavior, security, iana, references
+- **Enhanced** (optional): use_cases, change_log, implementation_status, design_rationale
 
 **Relationships**:
 - Part of `RFC Document`
@@ -249,7 +282,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["code", "rfc", "relationship", "last_synced"],
+        "required": ["code", "rfc", "relationship", "last_synced", "file_checksum", "staleness_status"],
         "properties": {
           "code": {
             "type": "object",
@@ -275,6 +308,21 @@
           "last_synced": {
             "type": "string",
             "format": "date-time"
+          },
+          "file_checksum": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "SHA256 hash of source file"
+          },
+          "git_commit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$",
+            "description": "Git commit hash at creation"
+          },
+          "staleness_status": {
+            "type": "string",
+            "enum": ["fresh", "stale", "unknown"],
+            "description": "Whether cross-reference is still valid"
           }
         }
       }

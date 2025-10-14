@@ -4,6 +4,7 @@ rfc2629xslt
 *.xslt
 .template-files.mk
 draft-*
+!draft-plugin-test-latest.md
 issues.json
 pulls.json
 *.DS_Store
@@ -51,3 +52,13 @@ tests/__pycache__/
 tests/**/__pycache__/
 .behave_cache/
 test_output/
+
+# RFC build artifacts (from Make targets)
+# Root level build outputs (exclude generated .txt/.html/.xml but keep source .md)
+/*.txt
+/*.html
+/*.xml
+# Generated docs build outputs
+docs/generated/*.txt
+docs/generated/*.html
+docs/generated/*.xml
