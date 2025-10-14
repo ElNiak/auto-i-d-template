@@ -1,0 +1,176 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-10-13T12:15:00Z",
+  "rfc_file": "docs/generated/test-rfc.md",
+  "source_paths": [
+    "tests/fixtures/sample-project/"
+  ],
+  "mappings": [
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.add",
+        "line": 56
+      },
+      "rfc": {
+        "section": "3.1",
+        "heading": "Addition Operation"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.subtract",
+        "line": 71
+      },
+      "rfc": {
+        "section": "3.2",
+        "heading": "Subtraction Operation"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.multiply",
+        "line": 77
+      },
+      "rfc": {
+        "section": "3.3",
+        "heading": "Multiplication Operation"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.divide",
+        "line": 83
+      },
+      "rfc": {
+        "section": "3.4",
+        "heading": "Division Operation"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.calculate_total",
+        "line": 24
+      },
+      "rfc": {
+        "section": "3.5",
+        "heading": "Aggregate Calculation"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.store_memory",
+        "line": 103
+      },
+      "rfc": {
+        "section": "4.1",
+        "heading": "Memory Storage"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.recall_memory",
+        "line": 107
+      },
+      "rfc": {
+        "section": "4.2",
+        "heading": "Memory Retrieval"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.clear_memory",
+        "line": 111
+      },
+      "rfc": {
+        "section": "4.3",
+        "heading": "Memory Clearing"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.get_history",
+        "line": 119
+      },
+      "rfc": {
+        "section": "5.1",
+        "heading": "History Retrieval"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    },
+    {
+      "code": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.clear_history",
+        "line": 115
+      },
+      "rfc": {
+        "section": "5.2",
+        "heading": "History Clearing"
+      },
+      "relationship": "implements",
+      "last_synced": "2025-10-13T12:15:00Z",
+      "file_checksum": "abc123def456",
+      "git_commit": "266cd94",
+      "staleness_status": "fresh"
+    }
+  ],
+  "statistics": {
+    "total_mappings": 10,
+    "files_analyzed": 1,
+    "symbols_documented": 10,
+    "external_standards": 2
+  }
+}

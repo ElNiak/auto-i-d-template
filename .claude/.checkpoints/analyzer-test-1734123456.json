@@ -1,0 +1,172 @@
+{
+  "relationships": [
+    {
+      "source": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.add",
+        "line": 56
+      },
+      "target": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.history",
+        "line": 22
+      },
+      "type": "modifies",
+      "confidence": 1.0,
+      "description": "add() appends operation to history list"
+    },
+    {
+      "source": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.subtract",
+        "line": 71
+      },
+      "target": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.history",
+        "line": 22
+      },
+      "type": "modifies",
+      "confidence": 1.0,
+      "description": "subtract() appends operation to history list"
+    },
+    {
+      "source": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.multiply",
+        "line": 77
+      },
+      "target": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.history",
+        "line": 22
+      },
+      "type": "modifies",
+      "confidence": 1.0,
+      "description": "multiply() appends operation to history list"
+    },
+    {
+      "source": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.divide",
+        "line": 83
+      },
+      "target": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.history",
+        "line": 22
+      },
+      "type": "modifies",
+      "confidence": 1.0,
+      "description": "divide() appends operation to history list"
+    },
+    {
+      "source": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.calculate_total",
+        "line": 24
+      },
+      "target": {
+        "file": "tests/fixtures/sample-project/src/calculator.py",
+        "symbol": "Calculator.history",
+        "line": 22
+      },
+      "type": "modifies",
+      "confidence": 1.0,
+      "description": "calculate_total() appends operation to history list"
+    }
+  ],
+  "behavioral_patterns": [
+    {
+      "pattern": "history_tracking",
+      "type": "audit_trail",
+      "description": "All arithmetic operations automatically append to history list for audit trail",
+      "methods": [
+        "Calculator.add",
+        "Calculator.subtract",
+        "Calculator.multiply",
+        "Calculator.divide",
+        "Calculator.calculate_total"
+      ],
+      "state_variables": ["history"],
+      "confidence": 1.0
+    },
+    {
+      "pattern": "memory_storage",
+      "type": "state_management",
+      "description": "Calculator maintains persistent memory state across operations",
+      "methods": [
+        "Calculator.store_memory",
+        "Calculator.recall_memory",
+        "Calculator.clear_memory"
+      ],
+      "state_variables": ["memory"],
+      "confidence": 1.0
+    },
+    {
+      "pattern": "error_handling",
+      "type": "validation",
+      "description": "Input validation with typed exceptions for different error conditions",
+      "implementations": [
+        {
+          "method": "Calculator.divide",
+          "exception": "ZeroDivisionError",
+          "condition": "denominator is zero"
+        },
+        {
+          "method": "Calculator.calculate_total",
+          "exception": "TypeError",
+          "condition": "items is not a list"
+        },
+        {
+          "method": "Calculator.calculate_total",
+          "exception": "ValueError",
+          "condition": "list contains non-numeric values"
+        }
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "external_standards": [
+    {
+      "standard_id": "IEEE 754",
+      "title": "IEEE Standard for Floating-Point Arithmetic",
+      "detected_in": [
+        {
+          "file": "tests/fixtures/sample-project/src/calculator.py",
+          "line": 16,
+          "context": "Calculator class docstring: 'implements standard arithmetic operations following IEEE 754 floating-point arithmetic standards'",
+          "detection_method": "explicit_reference"
+        }
+      ],
+      "confidence": 1.0,
+      "detection_layer": "Layer 1 (Explicit Reference)",
+      "evidence": "Direct citation in class docstring"
+    },
+    {
+      "standard_id": "Python Type Hints (PEP 484)",
+      "title": "Type Hints for Python",
+      "detected_in": [
+        {
+          "file": "tests/fixtures/sample-project/src/calculator.py",
+          "line": 8,
+          "context": "from typing import List, Union",
+          "detection_method": "import_statement"
+        }
+      ],
+      "confidence": 1.0,
+      "detection_layer": "Layer 2 (Implicit/Dependency)",
+      "evidence": "typing module usage throughout signatures"
+    }
+  ],
+  "analysis_metadata": {
+    "files_analyzed": 1,
+    "symbols_extracted": 12,
+    "relationships_found": 5,
+    "patterns_identified": 3,
+    "standards_detected": 2,
+    "confidence_threshold": 0.6,
+    "analysis_timestamp": "2025-10-13T12:05:00Z",
+    "checksum": "def456ghi789"
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "summary": {
+    "files_analyzed": 1,
+    "public_apis": 10,
+    "types": 1,
+    "private_symbols_skipped": 0,
+    "phase_1_symbols": 1,
+    "phase_2_symbols": 10,
+    "timestamp": "2025-10-13T12:00:00Z",
+    "checksum": "abc123def456"
+  },
+  "files": [
+    {
+      "path": "tests/fixtures/sample-project/src/calculator.py",
+      "language": "python",
+      "module_docstring": "Calculator module for basic arithmetic operations\n\nThis module provides a Calculator class with various arithmetic operations.\nIt follows Python best practices and includes comprehensive documentation.",
+      "symbols": [
+        {
+          "name": "Calculator",
+          "type": "class",
+          "visibility": "public",
+          "line": 11,
+          "end_line": 122,
+          "docstring": "A simple calculator class for performing basic arithmetic operations\n\nThis class implements standard arithmetic operations following\nIEEE 754 floating-point arithmetic standards.",
+          "methods": [
+            {
+              "name": "__init__",
+              "type": "method",
+              "visibility": "public",
+              "line": 19,
+              "signature": "__init__(self)",
+              "docstring": "Initialize the calculator with default settings",
+              "parameters": [],
+              "return_type": "None"
+            },
+            {
+              "name": "calculate_total",
+              "type": "method",
+              "visibility": "public",
+              "line": 24,
+              "signature": "calculate_total(self, items: List[Union[int, float]]) -> float",
+              "docstring": "Calculate the total sum of numeric items\n\nThis is a public API method that computes the sum of all numeric\nvalues in the provided list.",
+              "parameters": [
+                {
+                  "name": "items",
+                  "type": "List[Union[int, float]]",
+                  "description": "List of numeric values (int or float)"
+                }
+              ],
+              "return_type": "float",
+              "raises": [
+                {
+                  "exception": "TypeError",
+                  "description": "If items is not a list"
+                },
+                {
+                  "exception": "ValueError",
+                  "description": "If list contains non-numeric values"
+                }
+              ],
+              "examples": [
+                {
+                  "code": "calc = Calculator()\ncalc.calculate_total([1, 2, 3, 4, 5])",
+                  "result": "15.0"
+                }
+              ]
+            },
+            {
+              "name": "add",
+              "type": "method",
+              "visibility": "public",
+              "line": 56,
+              "signature": "add(self, a: float, b: float) -> float",
+              "docstring": "Add two numbers",
+              "parameters": [
+                {
+                  "name": "a",
+                  "type": "float",
+                  "description": "First number"
+                },
+                {
+                  "name": "b",
+                  "type": "float",
+                  "description": "Second number"
+                }
+              ],
+              "return_type": "float"
+            },
+            {
+              "name": "subtract",
+              "type": "method",
+              "visibility": "public",
+              "line": 71,
+              "signature": "subtract(self, a: float, b: float) -> float",
+              "docstring": "Subtract b from a",
+              "parameters": [
+                {
+                  "name": "a",
+                  "type": "float"
+                },
+                {
+                  "name": "b",
+                  "type": "float"
+                }
+              ],
+              "return_type": "float"
+            },
+            {
+              "name": "multiply",
+              "type": "method",
+              "visibility": "public",
+              "line": 77,
+              "signature": "multiply(self, a: float, b: float) -> float",
+              "docstring": "Multiply two numbers",
+              "parameters": [
+                {
+                  "name": "a",
+                  "type": "float"
+                },
+                {
+                  "name": "b",
+                  "type": "float"
+                }
+              ],
+              "return_type": "float"
+            },
+            {
+              "name": "divide",
+              "type": "method",
+              "visibility": "public",
+              "line": 83,
+              "signature": "divide(self, a: float, b: float) -> float",
+              "docstring": "Divide a by b",
+              "parameters": [
+                {
+                  "name": "a",
+                  "type": "float",
+                  "description": "Numerator"
+                },
+                {
+                  "name": "b",
+                  "type": "float",
+                  "description": "Denominator"
+                }
+              ],
+              "return_type": "float",
+              "raises": [
+                {
+                  "exception": "ZeroDivisionError",
+                  "description": "If b is zero"
+                }
+              ]
+            },
+            {
+              "name": "store_memory",
+              "type": "method",
+              "visibility": "public",
+              "line": 103,
+              "signature": "store_memory(self, value: float) -> None",
+              "docstring": "Store a value in calculator memory",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "float"
+                }
+              ],
+              "return_type": "None"
+            },
+            {
+              "name": "recall_memory",
+              "type": "method",
+              "visibility": "public",
+              "line": 107,
+              "signature": "recall_memory(self) -> float",
+              "docstring": "Recall the value stored in calculator memory",
+              "parameters": [],
+              "return_type": "float"
+            },
+            {
+              "name": "clear_memory",
+              "type": "method",
+              "visibility": "public",
+              "line": 111,
+              "signature": "clear_memory(self) -> None",
+              "docstring": "Clear calculator memory",
+              "parameters": [],
+              "return_type": "None"
+            },
+            {
+              "name": "clear_history",
+              "type": "method",
+              "visibility": "public",
+              "line": 115,
+              "signature": "clear_history(self) -> None",
+              "docstring": "Clear calculation history",
+              "parameters": [],
+              "return_type": "None"
+            },
+            {
+              "name": "get_history",
+              "type": "method",
+              "visibility": "public",
+              "line": 119,
+              "signature": "get_history(self) -> List",
+              "docstring": "Get the calculation history",
+              "parameters": [],
+              "return_type": "List"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "memory",
+              "type": "float",
+              "visibility": "public",
+              "line": 21,
+              "default_value": "0.0"
+            },
+            {
+              "name": "history",
+              "type": "List",
+              "visibility": "public",
+              "line": 22,
+              "default_value": "[]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
