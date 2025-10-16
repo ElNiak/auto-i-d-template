@@ -268,6 +268,127 @@ Use when describing requirements:
 
 Example: "The calculator MUST validate input types before processing."
 
+## Incremental Update Mode (User Story 2)
+
+When operating in **incremental update mode** (invoked by coordinator for `/rfc-update`):
+
+### Input Differences
+
+You receive additional context beyond the standard parser/analyzer outputs:
+
+- **Existing RFC content**: The current RFC document containing `@preserve` blocks
+- **Section filter**: List of specific section IDs to regenerate (e.g., `["3.1", "4.2"]`)
+- **Preserve blocks**: List of PreserveBlock objects extracted from existing RFC
+  ```json
+  {
+    "start_line": 45,
+    "end_line": 52,
+    "content": "...manual edits...",
+    "marker_id": "security-notes"
+  }
+  ```
+
+### Output Requirements
+
+Return JSON with **partial content** (changed sections only):
+
+```json
+{
+  "rfc_content": "...only the regenerated sections...",
+  "mappings": [...only mappings for regenerated sections...],
+  "updated_sections": ["3.1", "4.2"],
+  "warnings": ["Section 3.1 may overlap with preserve block at lines 45-52"]
+}
+```
+
+### Key Differences from Initial Generation
+
+1. **Section Filtering**: Only generate sections specified in `section_filter`
+   - Skip unchanged sections entirely (coordinator retains them from existing RFC)
+   - Do NOT regenerate content within `@preserve` blocks
+   - Example: If section_filter = `["3.1"]`, only output Interface section 3.1
+
+2. **Partial Output**: Return only updated sections, not a full RFC document
+   - No frontmatter repetition (coordinator already has it)
+   - No Abstract/Introduction unless explicitly in section_filter
+   - Coordinator will merge your output with existing content via `preserve_edits.merge_with_preserved()`
+
+3. **Preserve Block Awareness**: If a section overlaps with a preserve block:
+   - Generate content normally (don't skip generation)
+   - Flag the overlap in `warnings` array
+   - Coordinator will apply **preservation priority rule**: preserve blocks always take precedence
+   - Example warning: `"Section 3.1 Security Considerations overlaps with preserve block 'security-notes' at lines 45-52"`
+
+4. **Deduplication**: Avoid regenerating unchanged content
+   - If analyzer indicates a symbol is unchanged, skip its section
+   - Only generate sections for modified or new code elements
+   - This prevents unnecessary churn in the RFC document
+
+### Example Incremental Update Prompt
+
+```
+You are operating in INCREMENTAL UPDATE MODE.
+
+Changed sections: ["3.1", "4.2"]
+
+Parser results (FILTERED to changed code only):
+{
+  "symbols": [
+    {"file": "src/auth.py", "symbol": "AuthService.authenticate", "line": 45, "type": "method"}
+  ]
+}
+
+Analyzer results (FILTERED):
+{
+  "behaviors": [...only for changed symbols...]
+}
+
+Existing preserve blocks:
+[
+  {
+    "start_line": 45,
+    "end_line": 52,
+    "content": "**[MANUAL EDIT]** Custom security requirements...",
+    "marker_id": "security"
+  }
+]
+
+Instructions:
+- Generate ONLY sections 3.1 and 4.2
+- Flag any overlaps with preserve blocks (coordinator will resolve)
+- Return partial RFC content (coordinator will merge)
+```
+
+### Error Handling and Conflict Detection
+
+If you detect potential conflicts during incremental generation:
+
+1. **Preserve block overlap**:
+   - Include in `warnings`: `"Section 3.1 overlaps with preserve block at lines 45-52"`
+   - Continue generation (coordinator handles resolution via preservation priority)
+
+2. **Section reference conflict**:
+   - If regenerating section 3.1 but it references section 2.1 (not being regenerated)
+   - Verify cross-reference is still valid
+   - If uncertain, include in `warnings`: `"Section 3.1 references §2.1 which was not regenerated"`
+
+3. **Missing context**:
+   - If section_filter includes a section that depends on unchanged context
+   - Include in `warnings`: `"Section 4.2 may require context from §3.1 (not regenerated)"`
+
+### Integration with Coordinator Workflow
+
+The coordinator orchestrates the incremental update:
+
+1. **Step 1**: Coordinator loads existing RFC and extracts preserve blocks using `preserve_edits.extract_preserve_blocks()`
+2. **Step 2**: Coordinator detects changed code using `impact_analyzer.detect_affected_sections()`
+3. **Step 3**: Coordinator compares existing rfc-map.json with current code using `rfc_mapper.compare_with_current_state()`
+4. **Step 4**: Coordinator spawns YOU (formatter) with filtered inputs and section_filter
+5. **Step 5**: Coordinator merges your output with existing RFC using `preserve_edits.merge_with_preserved()`
+
+Your responsibility: Generate clean, partial RFC content for changed sections only.
+Coordinator's responsibility: Handle merging, conflict resolution, and final output assembly.
+
 ## Error Handling
 
 If formatting fails for a section:

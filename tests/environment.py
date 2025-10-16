@@ -12,7 +12,8 @@ import shutil
 import tempfile
 import subprocess
 from pathlib import Path
-from behave import *  # type: ignore
+from behave import fixture, use_fixture  # type: ignore
+from behave.runner import Context
 
 
 def before_all(context):
@@ -34,7 +35,9 @@ def before_all(context):
     context.test_stats = {
         'scenarios_run': 0,
         'scenarios_passed': 0,
-        'scenarios_failed': 0
+        'scenarios_failed': 0,
+        'total_time': 0.0,
+        'scenario_times': []  # List of (scenario_name, duration) tuples
     }
 
     print("\n" + "="*70)
@@ -46,17 +49,21 @@ def before_scenario(context, scenario):
     """
     Called before each test scenario runs.
 
-    Creates isolated test environment with temporary git repository.
+    Creates isolated test environment with optional git repository.
     """
+    import time
+
     context.test_stats['scenarios_run'] += 1
+    context.scenario_start_time = time.time()
 
     # Create temporary directory for this scenario
     context.temp_dir = tempfile.mkdtemp(prefix='rfc_test_')
     context.test_repo = Path(context.temp_dir)
-    context.working_dir = context.temp_dir  # For compatibility with existing tests
 
-    # Initialize git repository
-    _init_git_repo(context.test_repo)
+    # Initialize git repository only if @git tag is present or by default
+    # Skip git init for scenarios tagged with @no-git
+    if 'no-git' not in scenario.tags:
+        _init_git_repo(context.test_repo)
 
     # Copy plugin files to test repo if they exist
     plugin_source = Path(context.original_cwd) / '.claude'
@@ -86,11 +93,13 @@ def after_scenario(context, scenario):
 
     Cleanup temporary files and restore working directory.
     """
-    # Original cleanup logic for i-d-template tests
-    if "working_dir" in context:
-        shutil.rmtree(context.working_dir, ignore_errors=True)
-    if "origin_dir" in context:
-        shutil.rmtree(context.origin_dir, ignore_errors=True)
+    import time
+
+    # Calculate scenario execution time
+    if hasattr(context, 'scenario_start_time'):
+        duration = time.time() - context.scenario_start_time
+        context.test_stats['total_time'] += duration
+        context.test_stats['scenario_times'].append((scenario.name, duration))
 
     # Change back to original directory
     os.chdir(context.original_cwd)
@@ -110,18 +119,31 @@ def after_scenario(context, scenario):
 
     # Cleanup temporary directory (unless debugging)
     if not os.environ.get('KEEP_TEST_DIRS'):
-        if hasattr(context, 'temp_dir') and os.path.exists(context.temp_dir):
-            shutil.rmtree(context.temp_dir, ignore_errors=True)
+        # Clean up temp_dir and legacy working_dir/origin_dir if they exist
+        for dir_attr in ['temp_dir', 'working_dir', 'origin_dir']:
+            if hasattr(context, dir_attr):
+                dir_path = getattr(context, dir_attr)
+                if os.path.exists(dir_path):
+                    shutil.rmtree(dir_path, ignore_errors=True)
+                delattr(context, dir_attr)
     else:
         if hasattr(context, 'temp_dir'):
             print(f"  Test directory preserved: {context.temp_dir}")
+
+    # Explicit context cleanup to prevent pollution
+    # Remove scenario-specific attributes
+    for attr in ['scenario_start_time', 'output_files', 'error_log', 'scenario_name',
+                  'generated_rfc', 'command_exit_code', 'command_output', 'command_result',
+                  'hook_response', 'rfc_map_path', 'sample_project']:
+        if hasattr(context, attr):
+            delattr(context, attr)
 
 
 def after_all(context):
     """
     Called once after all tests complete.
 
-    Print test summary and statistics.
+    Print test summary and statistics including performance metrics.
     """
     if hasattr(context, 'test_stats'):
         print("\n" + "="*70)
@@ -130,6 +152,21 @@ def after_all(context):
         print(f"Total scenarios: {context.test_stats['scenarios_run']}")
         print(f"Passed: {context.test_stats['scenarios_passed']} ✅")
         print(f"Failed: {context.test_stats['scenarios_failed']} ❌")
+
+        # Performance metrics
+        if context.test_stats['total_time'] > 0:
+            print(f"\nExecution Time:")
+            print(f"  Total: {context.test_stats['total_time']:.2f}s")
+            avg_time = context.test_stats['total_time'] / context.test_stats['scenarios_run']
+            print(f"  Average per scenario: {avg_time:.2f}s")
+
+            # Show slowest scenarios (top 5)
+            if context.test_stats['scenario_times']:
+                sorted_times = sorted(context.test_stats['scenario_times'],
+                                     key=lambda x: x[1], reverse=True)
+                print(f"\n  Slowest scenarios:")
+                for name, duration in sorted_times[:5]:
+                    print(f"    {duration:6.2f}s - {name}")
 
         if context.test_stats['scenarios_failed'] == 0:
             print("\n🎉 All tests passed!")
