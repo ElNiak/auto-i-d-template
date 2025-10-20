@@ -35,19 +35,9 @@ class CommandRunner:
         self,
         test_dir: str,
         serena_available: bool = True,
-        make_available: Optional[bool] = None,
-        make_version: Optional[str] = None,
         network_available: bool = True,
         disk_space_sufficient: bool = True,
         permissions_ok: bool = True,
-        # Tool availability overrides
-        kramdown_installed: Optional[bool] = None,
-        xml2rfc_installed: Optional[bool] = None,
-        idnits_installed: Optional[bool] = None,
-        # Tool version overrides
-        kramdown_version: Optional[str] = None,
-        xml2rfc_version: Optional[str] = None,
-        idnits_version: Optional[str] = None,
         # Installation failure flags (for negative testing)
         bundler_install_fails: bool = False
     ):
@@ -57,39 +47,18 @@ class CommandRunner:
         Args:
             test_dir: Root directory of the test repository
             serena_available: Whether Serena MCP is available (for testing)
-            make_available: Override Make availability check (None = detect real)
-            make_version: Override Make version string (None = detect real)
             network_available: Whether network is available (for testing)
             disk_space_sufficient: Whether disk space is sufficient (for testing)
             permissions_ok: Whether permissions allow operations (for testing)
-            kramdown_installed: Override kramdown-rfc detection (None = detect real)
-            xml2rfc_installed: Override xml2rfc detection (None = detect real)
-            idnits_installed: Override idnits detection (None = detect real)
-            kramdown_version: Override kramdown-rfc version (None = detect real)
-            xml2rfc_version: Override xml2rfc version (None = detect real)
-            idnits_version: Override idnits version (None = detect real)
             bundler_install_fails: Force bundler installation to fail (for negative testing)
         """
         self.test_dir = Path(test_dir)
         self.lib_dir = self.test_dir / '.claude' / 'lib'
         self.serena_available = serena_available
-        self.make_available_override = make_available
-        self.make_version_override = make_version
         self.network_available = network_available
         self.disk_space_sufficient = disk_space_sufficient
         self.permissions_ok = permissions_ok
         self.bundler_install_fails = bundler_install_fails
-        # Tool overrides
-        self.tool_installed_overrides = {
-            'kramdown-rfc': kramdown_installed,
-            'xml2rfc': xml2rfc_installed,
-            'idnits': idnits_installed
-        }
-        self.tool_version_overrides = {
-            'kramdown-rfc': kramdown_version,
-            'xml2rfc': xml2rfc_version,
-            'idnits': idnits_version
-        }
 
         # Add .claude/lib to sys.path for imports
         if str(self.lib_dir) not in sys.path:
@@ -645,13 +614,9 @@ class CommandRunner:
         py_tools_installed = venv_result['success'] and py_install_result.get('installed_tools', [])
         rb_tools_installed = rb_install_result.get('installed_tools', [])
 
-        # If we installed tools, ignore test overrides to detect real installed versions
-        # Otherwise respect test overrides (for tests that mark tools as available without installing)
-        ignore_overrides = bool(py_tools_installed or rb_tools_installed)
-
         checks_output.append("  Python (venv):")
-        xml2rfc_version = self._detect_tool_version('xml2rfc', ignore_overrides=ignore_overrides)
-        idnits_version = self._detect_tool_version('idnits', ignore_overrides=ignore_overrides)
+        xml2rfc_version = self._detect_tool_version('xml2rfc')
+        idnits_version = self._detect_tool_version('idnits')
 
         # Track core tools separately from optional tools
         core_tools_available = True
@@ -669,7 +634,7 @@ class CommandRunner:
             # idnits is optional - doesn't affect READY status
 
         checks_output.append("  Ruby (bundler):")
-        kramdown_version = self._detect_tool_version('kramdown-rfc', ignore_overrides=ignore_overrides)
+        kramdown_version = self._detect_tool_version('kramdown-rfc')
         if kramdown_version:
             checks_output.append(f"     - kramdown-rfc2629 {kramdown_version} ✅")
         else:
@@ -960,12 +925,7 @@ class CommandRunner:
             return False
 
     def _check_make_available(self) -> bool:
-        """Check if GNU Make is available"""
-        # If test explicitly overrides, use that value
-        if self.make_available_override is not None:
-            return self.make_available_override
-
-        # Otherwise detect real Make availability
+        """Check if GNU Make is available by running make --version"""
         try:
             result = subprocess.run(
                 ['make', '--version'],
@@ -978,12 +938,7 @@ class CommandRunner:
             return False
 
     def _get_make_version(self) -> Optional[str]:
-        """Get GNU Make version"""
-        # Check for test override first
-        if self.make_version_override is not None:
-            return self.make_version_override
-
-        # Otherwise detect real version
+        """Get GNU Make version by parsing make --version output"""
         try:
             result = subprocess.run(
                 ['make', '--version'],
@@ -1065,17 +1020,6 @@ class CommandRunner:
         tools_to_install = ['xml2rfc', 'idnits']
 
         for tool in tools_to_install:
-            # Check if we should install this tool (based on initial overrides)
-            # If override is True -> already installed, skip
-            # If override is False -> not installed, SHOULD install
-            # If override is None -> detect and install if missing
-            tool_key = tool
-            if tool_key in self.tool_installed_overrides:
-                if self.tool_installed_overrides[tool_key] is True:
-                    # Already marked as installed initially, skip installation
-                    continue
-                # If False or None, proceed with installation
-
             try:
                 cmd_result = subprocess.run(
                     [str(pip_exe), 'install', tool],
@@ -1125,12 +1069,6 @@ class CommandRunner:
             result['success'] = False
             result['output'].append("❌ bundler not available")
             return result
-
-        # Check if we should install kramdown (based on initial overrides)
-        if 'kramdown-rfc' in self.tool_installed_overrides:
-            if self.tool_installed_overrides['kramdown-rfc'] is True:
-                # Already marked as installed initially, skip
-                return result
 
         # Create Gemfile if it doesn't exist
         gemfile_path = self.test_dir / 'Gemfile'
@@ -1251,34 +1189,17 @@ gem 'kramdown-rfc'
 
         return result
 
-    def _detect_tool_version(self, tool_name: str, ignore_overrides: bool = False) -> Optional[str]:
+    def _detect_tool_version(self, tool_name: str) -> Optional[str]:
         """
         Detect actual tool version by executing version command.
 
         Args:
             tool_name: Tool to detect (kramdown-rfc, xml2rfc, idnits)
-            ignore_overrides: If True, skip override checks and do real detection
 
         Returns:
             Version string if detected, None if tool not found
         """
-        # Check if test explicitly overrode the version (unless ignoring overrides)
-        if not ignore_overrides and tool_name in self.tool_version_overrides:
-            override_version = self.tool_version_overrides[tool_name]
-            if override_version is not None:
-                return override_version
-
-        # Check if test explicitly set tool as not installed (unless ignoring overrides)
-        if not ignore_overrides and tool_name in self.tool_installed_overrides:
-            override_installed = self.tool_installed_overrides[tool_name]
-            if override_installed is False:
-                return None
-            elif override_installed is True:
-                # Tool is marked as installed but no version specified
-                # Return a default test version
-                return "1.0.0"  # Generic version for tests
-
-        # Otherwise detect real tool version
+        # Detect real tool version
         # For Python tools, check venv first
         venv_paths = [self.test_dir / '.venv', self.test_dir / 'lib' / 'venv']
         tool_executable = None
