@@ -332,26 +332,26 @@ def step_xml2rfc_specific_version(context: Context, version: str):
 
 @given('network connectivity is unavailable')
 def step_network_unavailable(context: Context):
-    """Mark network as unavailable"""
-    context.network_available = False
+    """Mark network as unavailable (NO-OP: flag ignored after Phase 2, scenario @skip)"""
+    context.network_available = False  # Set but ignored - kept for backward compatibility
 
 
 @given('network connectivity is available')
 def step_network_available(context: Context):
-    """Mark network as available"""
-    context.network_available = True
+    """Mark network as available (NO-OP: flag ignored after Phase 2)"""
+    context.network_available = True  # Set but ignored - kept for backward compatibility
 
 
 @given('available disk space is less than 100MB')
 def step_low_disk_space(context: Context):
-    """Mark disk space as insufficient"""
-    context.disk_space_sufficient = False
+    """Mark disk space as insufficient (NO-OP: flag ignored after Phase 2, scenario @skip)"""
+    context.disk_space_sufficient = False  # Set but ignored - kept for backward compatibility
 
 
 @given('user does not have write permission to repository')
 def step_no_write_permission(context: Context):
-    """Mark user as lacking write permissions"""
-    context.has_write_permission = False
+    """Mark user as lacking write permissions (NO-OP: flag ignored after Phase 2, scenario @skip)"""
+    context.has_write_permission = False  # Set but ignored - kept for backward compatibility
 
 
 @given('another /rfc-init process is already running')
@@ -454,8 +454,8 @@ def step_python_venv_can_be_created(context: Context):
 
 @given('Ruby bundler installation fails')
 def step_ruby_bundler_fails(context: Context):
-    """Mark Ruby bundler installation as failing"""
-    context.bundler_install_fails = True
+    """Mark Ruby bundler installation as failing (NO-OP: flag ignored after Phase 2, scenario @skip)"""
+    context.bundler_install_fails = True  # Set but ignored - kept for backward compatibility
 
 
 @given('mandatory tools (Make, kramdown, xml2rfc) are installed')
