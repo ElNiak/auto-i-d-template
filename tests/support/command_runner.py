@@ -34,12 +34,7 @@ class CommandRunner:
     def __init__(
         self,
         test_dir: str,
-        serena_available: bool = True,
-        network_available: bool = True,
-        disk_space_sufficient: bool = True,
-        permissions_ok: bool = True,
-        # Installation failure flags (for negative testing)
-        bundler_install_fails: bool = False
+        serena_available: bool = True
     ):
         """
         Initialize command runner.
@@ -47,18 +42,10 @@ class CommandRunner:
         Args:
             test_dir: Root directory of the test repository
             serena_available: Whether Serena MCP is available (for testing)
-            network_available: Whether network is available (for testing)
-            disk_space_sufficient: Whether disk space is sufficient (for testing)
-            permissions_ok: Whether permissions allow operations (for testing)
-            bundler_install_fails: Force bundler installation to fail (for negative testing)
         """
         self.test_dir = Path(test_dir)
         self.lib_dir = self.test_dir / '.claude' / 'lib'
         self.serena_available = serena_available
-        self.network_available = network_available
-        self.disk_space_sufficient = disk_space_sufficient
-        self.permissions_ok = permissions_ok
-        self.bundler_install_fails = bundler_install_fails
 
         # Add .claude/lib to sys.path for imports
         if str(self.lib_dir) not in sys.path:
@@ -1056,12 +1043,6 @@ class CommandRunner:
         """
         result = {'success': True, 'output': [], 'installed_tools': []}
 
-        # For negative testing: simulate bundler installation failure if flag set
-        if self.bundler_install_fails:
-            result['success'] = False
-            result['output'].append("❌ Ruby bundler installation failed (simulated)")
-            return result
-
         # Check if bundler is available
         try:
             subprocess.run(['bundle', '--version'], capture_output=True, check=True, timeout=5)
@@ -1126,24 +1107,6 @@ gem 'kramdown-rfc'
             'ruby_version': None,
             'error': None
         }
-
-        # Check if network is available (from test context)
-        if not self.network_available:
-            result['error'] = "Network unavailable"
-            result['output'].append("❌ Network not available for dependency installation")
-            return result
-
-        # Check disk space (from test context)
-        if not self.disk_space_sufficient:
-            result['error'] = "Insufficient disk space"
-            result['output'].append("❌ Insufficient disk space for dependency installation")
-            return result
-
-        # Check permissions (from test context)
-        if not self.permissions_ok:
-            result['error'] = "Permission denied"
-            result['output'].append("❌ Permission denied for dependency installation")
-            return result
 
         # Check if Makefile exists and has deps target
         makefile_path = self.test_dir / 'Makefile'
@@ -1531,11 +1494,7 @@ Security considerations section.
 def run_slash_command(
     test_dir: str,
     command: str,
-    serena_available: bool = True,
-    network_available: bool = True,
-    disk_space_sufficient: bool = True,
-    permissions_ok: bool = True,
-    bundler_install_fails: bool = False
+    serena_available: bool = True
 ) -> CommandResult:
     """
     Convenience function to run a slash command.
@@ -1544,20 +1503,12 @@ def run_slash_command(
         test_dir: Test repository directory
         command: Full slash command string
         serena_available: Whether Serena MCP is available (for testing)
-        network_available: Whether network is available (for testing)
-        disk_space_sufficient: Whether disk space is sufficient (for testing)
-        permissions_ok: Whether permissions allow operations (for testing)
-        bundler_install_fails: Simulate bundler installation failure (for testing)
 
     Returns:
         CommandResult
     """
     runner = CommandRunner(
         test_dir,
-        serena_available=serena_available,
-        network_available=network_available,
-        disk_space_sufficient=disk_space_sufficient,
-        permissions_ok=permissions_ok,
-        bundler_install_fails=bundler_install_fails
+        serena_available=serena_available
     )
     return runner.run_command(command)

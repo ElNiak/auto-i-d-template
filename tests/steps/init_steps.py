@@ -523,22 +523,12 @@ def _execute_rfc_init_command(context: Context, command: str):
 
     # Determine test context flags
     serena_available = getattr(context, 'serena_mcp_available', True)
-    network_available = getattr(context, 'network_available', True)
-    disk_space_sufficient = not getattr(context, 'disk_space_low', False)
-    permissions_ok = not getattr(context, 'permissions_denied', False)
 
-    # Installation failure flags (for negative testing)
-    bundler_install_fails = getattr(context, 'bundler_install_fails', False)
-
-    # Execute command (tool versions are now always detected, not overridden)
+    # Execute command (environmental simulations removed in Phase 2)
     result = run_slash_command(
         context.test_repo,
         command,
-        serena_available=serena_available,
-        network_available=network_available,
-        disk_space_sufficient=disk_space_sufficient,
-        permissions_ok=permissions_ok,
-        bundler_install_fails=bundler_install_fails
+        serena_available=serena_available
     )
 
     # Store results
