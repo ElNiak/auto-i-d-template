@@ -1532,17 +1532,9 @@ def run_slash_command(
     test_dir: str,
     command: str,
     serena_available: bool = True,
-    make_available: Optional[bool] = None,
-    make_version: Optional[str] = None,
     network_available: bool = True,
     disk_space_sufficient: bool = True,
     permissions_ok: bool = True,
-    kramdown_installed: Optional[bool] = None,
-    xml2rfc_installed: Optional[bool] = None,
-    idnits_installed: Optional[bool] = None,
-    kramdown_version: Optional[str] = None,
-    xml2rfc_version: Optional[str] = None,
-    idnits_version: Optional[str] = None,
     bundler_install_fails: bool = False
 ) -> CommandResult:
     """
@@ -1552,17 +1544,10 @@ def run_slash_command(
         test_dir: Test repository directory
         command: Full slash command string
         serena_available: Whether Serena MCP is available (for testing)
-        make_available: Override Make availability check (None = detect real)
-        make_version: Override Make version string (None = detect real)
         network_available: Whether network is available (for testing)
         disk_space_sufficient: Whether disk space is sufficient (for testing)
         permissions_ok: Whether permissions allow operations (for testing)
-        kramdown_installed: Override kramdown-rfc detection
-        xml2rfc_installed: Override xml2rfc detection
-        idnits_installed: Override idnits detection
-        kramdown_version: Override kramdown-rfc version
-        xml2rfc_version: Override xml2rfc version
-        idnits_version: Override idnits version
+        bundler_install_fails: Simulate bundler installation failure (for testing)
 
     Returns:
         CommandResult
@@ -1570,17 +1555,9 @@ def run_slash_command(
     runner = CommandRunner(
         test_dir,
         serena_available=serena_available,
-        make_available=make_available,
-        make_version=make_version,
         network_available=network_available,
         disk_space_sufficient=disk_space_sufficient,
         permissions_ok=permissions_ok,
-        kramdown_installed=kramdown_installed,
-        xml2rfc_installed=xml2rfc_installed,
-        idnits_installed=idnits_installed,
-        kramdown_version=kramdown_version,
-        xml2rfc_version=xml2rfc_version,
-        idnits_version=idnits_version,
         bundler_install_fails=bundler_install_fails
     )
     return runner.run_command(command)
