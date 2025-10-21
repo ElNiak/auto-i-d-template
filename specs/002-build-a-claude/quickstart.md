@@ -14,6 +14,21 @@ cp -r path/to/rfc-generator/.claude .claude
 ls .claude/commands/
 ```
 
+3. **Initialize environment (NEW!):**
+```bash
+/rfc-init
+```
+
+This validates and installs all prerequisites:
+- ✅ Serena MCP (code analysis)
+- ✅ GNU Make + i-d-template (build system)
+- ✅ kramdown-rfc, xml2rfc (RFC tools)
+- ✅ Directory structure
+
+**Expected output**: `RFC Generation Environment: READY ✅`
+
+**Troubleshooting**: If initialization fails, `/rfc-init` provides detailed troubleshooting steps for common issues.
+
 ## Basic Usage
 
 ### Generate Initial RFC Documentation

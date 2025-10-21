@@ -1,0 +1,89 @@
+{
+  "rfc_content": "--- TRUNCATED FOR CHECKPOINT (full content in docs/generated/test-rfc.md) ---",
+  "mappings": [
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.add",
+      "line": 56,
+      "section": "3.1",
+      "heading": "Addition Operation",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.subtract",
+      "line": 71,
+      "section": "3.2",
+      "heading": "Subtraction Operation",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.multiply",
+      "line": 77,
+      "section": "3.3",
+      "heading": "Multiplication Operation",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.divide",
+      "line": 83,
+      "section": "3.4",
+      "heading": "Division Operation",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.calculate_total",
+      "line": 24,
+      "section": "3.5",
+      "heading": "Aggregate Calculation",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.store_memory",
+      "line": 103,
+      "section": "4.1",
+      "heading": "Memory Storage",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.recall_memory",
+      "line": 107,
+      "section": "4.2",
+      "heading": "Memory Retrieval",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.clear_memory",
+      "line": 111,
+      "section": "4.3",
+      "heading": "Memory Clearing",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.get_history",
+      "line": 119,
+      "section": "5.1",
+      "heading": "History Retrieval",
+      "relationship": "implements"
+    },
+    {
+      "file": "tests/fixtures/sample-project/src/calculator.py",
+      "symbol": "Calculator.clear_history",
+      "line": 115,
+      "section": "5.2",
+      "heading": "History Clearing",
+      "relationship": "implements"
+    }
+  ],
+  "metadata": {
+    "timestamp": "2025-10-13T12:10:00Z",
+    "checksum": "ghi789jkl012"
+  }
+}

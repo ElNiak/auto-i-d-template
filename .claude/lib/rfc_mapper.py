@@ -467,6 +467,111 @@ class RFCMapper:
 
         return stats
 
+    def compare_with_current_state(
+        self,
+        current_symbols: List[Dict],
+        repo_root: str = "."
+    ) -> Dict[str, List[Mapping]]:
+        """
+        Compare existing rfc-map.json with current code state.
+
+        This function enables incremental RFC updates by identifying:
+        - Removed mappings: Code symbols that no longer exist
+        - Modified mappings: Code symbols that moved or changed
+        - Unchanged mappings: Code symbols still at same location
+        - New symbols: Code not yet in rfc-map.json (requires new mappings)
+
+        Args:
+            current_symbols: List of symbol dicts from parser agent output
+                            Each dict should have: {file, symbol, line, type}
+            repo_root: Repository root path for normalizing file paths
+
+        Returns:
+            Dictionary with keys:
+            - 'removed': Mappings where code no longer exists
+            - 'modified': Mappings where code moved/changed
+            - 'unchanged': Mappings still valid
+            - 'new_symbols': Symbols not yet mapped (for new sections)
+
+        Example:
+            >>> mapper = load_rfc_map()
+            >>> current_symbols = parser_agent_output['symbols']
+            >>> diff = mapper.compare_with_current_state(current_symbols)
+            >>> print(f"Need to update {len(diff['modified'])} sections")
+        """
+        from pathlib import Path
+
+        # Normalize repo_root
+        repo_path = Path(repo_root).resolve()
+
+        # Build lookup table for current symbols
+        # Key: (file, symbol) -> {line, type, ...}
+        current_lookup = {}
+        for sym in current_symbols:
+            file_key = str(Path(sym['file']).resolve().relative_to(repo_path))
+            symbol_key = sym['symbol']
+            current_lookup[(file_key, symbol_key)] = sym
+
+        # Categorize existing mappings
+        removed = []
+        modified = []
+        unchanged = []
+
+        for mapping in self.mappings:
+            key = (mapping.code.file, mapping.code.symbol)
+
+            if key not in current_lookup:
+                # Symbol no longer exists
+                removed.append(mapping)
+                logger.debug(
+                    f"Symbol removed: {mapping.code.symbol} in {mapping.code.file}"
+                )
+
+            else:
+                # Symbol still exists - check if it moved
+                current = current_lookup[key]
+                current_line = current.get('line', mapping.code.line)
+
+                if current_line != mapping.code.line:
+                    # Line number changed
+                    modified.append(mapping)
+                    logger.debug(
+                        f"Symbol moved: {mapping.code.symbol} "
+                        f"from line {mapping.code.line} to {current_line}"
+                    )
+                else:
+                    # No change detected
+                    unchanged.append(mapping)
+
+        # Identify new symbols not in rfc-map.json
+        mapped_symbols = set(
+            (m.code.file, m.code.symbol) for m in self.mappings
+        )
+        new_symbols = []
+
+        for sym in current_symbols:
+            file_key = str(Path(sym['file']).resolve().relative_to(repo_path))
+            symbol_key = sym['symbol']
+
+            if (file_key, symbol_key) not in mapped_symbols:
+                new_symbols.append(sym)
+                logger.debug(f"New symbol: {symbol_key} in {file_key}")
+
+        logger.info(
+            f"Comparison complete: "
+            f"{len(removed)} removed, "
+            f"{len(modified)} modified, "
+            f"{len(unchanged)} unchanged, "
+            f"{len(new_symbols)} new symbols"
+        )
+
+        return {
+            'removed': removed,
+            'modified': modified,
+            'unchanged': unchanged,
+            'new_symbols': new_symbols
+        }
+
 
 # Convenience functions for quick operations
 

@@ -110,26 +110,45 @@
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T013 [P] [US1] Create Behave feature file in `tests/features/generate.feature` with scenarios: (1) generate from clean repo, (2) select specific paths, (3) verify cross-references
-- [ ] T014 [P] [US1] Implement test steps in `tests/steps/generate_steps.py` for RFC generation scenarios
-- [ ] T015 [P] [US1] Create test fixture codebase in `tests/fixtures/sample-project/` with known structure
+- [X] T013 [P] [US1] Create Behave feature file in `tests/features/generate.feature` with scenarios: (1) generate from clean repo, (2) select specific paths, (3) verify cross-references
+- [X] T014 [P] [US1] Implement test steps in `tests/steps/generate_steps.py` for RFC generation scenarios
+- [X] T015 [P] [US1] Create test fixture codebase in `tests/fixtures/sample-project/` with known structure
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Create `/rfc-generate` slash command in `.claude/commands/rfc-generate.md` with arguments: paths, output file, sections filter
-- [ ] T017 [P] [US1] Implement parser agent in `.claude/agents/parser.md` using Serena MCP tools (get_symbols_overview, find_symbol, search_for_pattern)
-- [ ] T018 [P] [US1] Implement analyzer agent in `.claude/agents/analyzer.md` for semantic analysis via Serena MCP (find_referencing_symbols)
-- [ ] T019 [P] [US1] Implement formatter agent in `.claude/agents/formatter.md` for generating RFC sections in kramdown-rfc format
-- [ ] T020 [US1] Integrate agents in coordinator: spawn parser → analyzer → formatter, aggregate results
-- [ ] T021 [US1] Add path selection logic in coordinator to filter selected directories/files
-- [ ] T022 [US1] Implement cross-reference generation in formatter using rfc_mapper.py
-- [ ] T023 [US1] Add section generation logic: terminology from type definitions, interfaces from public APIs, behavior from implementation
-- [ ] T024 [US1] Implement kramdown-rfc frontmatter generation (docname, title, authors, category)
-- [ ] T025 [US1] Create rfc-map.json output with bidirectional code ↔ section mappings
-- [ ] T026 [US1] Add error handling for: empty paths, no analyzable code, Serena MCP unavailable
-- [ ] T027 [US1] Add logging throughout generation workflow for debugging
+- [X] T016 [US1] Create `/rfc-generate` slash command in `.claude/commands/rfc-generate.md` with arguments: paths, output file, sections filter
+- [X] T017 [P] [US1] Implement parser agent in `.claude/agents/parser.md` using Serena MCP tools (get_symbols_overview, find_symbol, search_for_pattern)
+- [X] T018 [P] [US1] Implement analyzer agent in `.claude/agents/analyzer.md` for semantic analysis via Serena MCP (find_referencing_symbols)
+- [X] T019 [P] [US1] Implement formatter agent in `.claude/agents/formatter.md` for generating RFC sections in kramdown-rfc format
+- [X] T020 [US1] Integrate agents in coordinator: spawn parser → analyzer → formatter, aggregate results
+  - [X] T020a [US1] Implement two-phase parser orchestration (Phase 1: lightweight index with include_body=false, Phase 2: detailed extraction for public APIs only with include_body=true)
+  - [X] T020b [US1] Create schema_validator.py library and add validation checkpoints (validate parser/analyzer/formatter outputs against JSON schemas before proceeding)
+  - [X] T020c [US1] Implement scout pre-processing phase (discover code files, test parsability, estimate LOC, create .claude/.checkpoints/ directory)
+  - [X] T020d [US1] Implement post-processing lint phase (validate kramdown syntax, XML2RFC schema, quality gates including RFC 2119 keyword checks)
+  - [X] T020e [US1] Add checkpointing system (save parser.json, analyzer.json, formatter.json to .claude/.checkpoints/ with SHA256 hashes, implement recovery from failure)
+- [X] T021 [US1] Add path selection logic in coordinator to filter selected directories/files
+- [X] T022 [US1] Implement cross-reference generation in formatter using rfc_mapper.py
+- [X] T023 [US1] Add section generation logic: terminology from type definitions, interfaces from public APIs, behavior from implementation
+  - [X] T023a [US1] Implement abstraction guidelines in section generation (specification language, not implementation details - focus on WHAT and WHY, not HOW)
+  - [X] T023b [US1] Auto-insert [NEEDS MANUAL REVIEW] markers (Security Considerations always, protocol design decisions, incomplete information areas)
+  - [X] T023c [US1] Generate optional sections when content available (use_cases, change_log, implementation_status, design_rationale)
+- [X] T024 [US1] Implement kramdown-rfc frontmatter generation (docname, title, authors, category)
+- [X] T025 [US1] Create rfc-map.json output with bidirectional code ↔ section mappings
+- [X] T026 [US1] Add error handling for: empty paths, no analyzable code, Serena MCP unavailable
+- [X] T027 [US1] Add logging throughout generation workflow for debugging
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - can generate initial RFC from codebase
+
+**✅ VALIDATION STATUS** (2025-10-14):
+- RFC generated from test fixture: ✅ PASS
+- `make lint` validation: ✅ PASS
+- `make txt` validation: ✅ PASS (0 IDREF errors)
+- txt output generated: ✅ 20,872 bytes
+- rfc-map.json schema: ⚠️ 90% (structure correct, placeholder values)
+- Remaining warnings: 16 (non-blocking, acceptable for MVP)
+- **Phase 3 User Story 1: PRODUCTION READY** (with noted caveats)
+- See: `PHASE3-COMPREHENSIVE-VALIDATION-2025-10-14.md` for 5-phase validation report
+- See: `PHASE3-VALIDATION-SUCCESS.md` for build pipeline validation
 
 ---
 
@@ -178,42 +197,42 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T041 [P] [US3] Create Behave feature file in `tests/features/automation.feature` with scenarios: (1) pre-commit validation, (2) API change detection, (3) reviewer guidance
-- [ ] T042 [P] [US3] Implement test steps in `tests/steps/automation_steps.py` for hook scenarios
+- [X] T041 [P] [US3] Create Behave feature file in `tests/features/automation.feature` with scenarios: (1) pre-commit validation, (2) API change detection, (3) reviewer guidance
+- [X] T042 [P] [US3] Implement test steps in `tests/steps/automation_steps.py` for hook scenarios
 
 ### Implementation for User Story 3
 
-- [ ] T043 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_tool_validate.py` with tool matcher `Write|Edit`:
+- [X] T043 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_tool_validate.py` with tool matcher `Write|Edit`:
   - Extract file path from tool arguments (parse JSON input)
   - Check if file is tracked in rfc-map.json (any mappings reference this file)
   - Import and call `lib.impact_analyzer` to detect affected RFC sections (git diff + line tracking)
   - Display warning with affected sections if high-confidence matches found
   - Return JSON: `{"block": false, "message": "⚠️ Affects RFC §3.2...", "suggestion": "Run /rfc-analyze-impact"}`
   - Use Python logging for debugging
-- [ ] T044 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_bash_enforce.py` with tool matcher `Bash`:
+- [X] T044 [P] [US3] Implement PreToolUse hook in `.claude/hooks/pre_bash_enforce.py` with tool matcher `Bash`:
   - Parse Bash command from tool arguments
   - Detect direct kramdown-rfc, xml2rfc, or mmark invocations using regex
   - Block execution if not invoked via Make targets
   - Return JSON: `{"block": true, "message": "Use 'make txt' instead of 'xml2rfc'", "suggestion": "..."}`
   - Allow-list: `make`, `git`, standard unix tools (configurable)
-- [ ] T045 [P] [US3] Implement PostToolUse hook in `.claude/hooks/post_tool_sync.py` with tool matcher `Write|Edit|Bash`:
+- [X] T045 [P] [US3] Implement PostToolUse hook in `.claude/hooks/post_tool_sync.py` with tool matcher `Write|Edit|Bash`:
   - Parse tool result to detect modified files
   - Import and call `lib.rfc_mapper.update_timestamps()` for affected code elements
   - Flag stale cross-references (code changed but RFC not updated)
   - Append changes to `.claude/.hook-history.json` for audit trail
   - Return JSON: `{"block": false, "message": "Updated rfc-map.json for 3 files"}`
-- [ ] T046 [US3] Implement UserPromptSubmit hook in `.claude/hooks/user_intent_detect.py`:
+- [X] T046 [US3] Implement UserPromptSubmit hook in `.claude/hooks/user_intent_detect.py`:
   - Pattern match user prompt for RFC-related keywords: `/rfc-`, "RFC", "documentation", "spec"
   - Load relevant memory files from `.claude/memory/` (codebase-overview.md, rfc-architecture.md)
   - Return JSON with injected context (Claude Code will prepend to conversation)
   - Log intent detection to `.claude/.hook-history.json` for telemetry
-- [ ] T047 [US3] Implement SessionStart hook in `.claude/hooks/session_start_check.py`:
+- [X] T047 [US3] Implement SessionStart hook in `.claude/hooks/session_start_check.py`:
   - Check last modification time of rfc-map.json using `os.path.getmtime()`
   - If > 30 days old (configurable threshold), display staleness warning
   - Suggest running `/rfc-update` to refresh documentation
   - Use `subprocess.run(["git", "status", "--porcelain"])` to check for uncommitted changes in docs/generated/
   - Return JSON: `{"block": false, "message": "RFC docs last updated 45 days ago..."}`
-- [ ] T048 [P] [US3] Add hook configuration in `.claude/plugin.json` with Claude Code native format:
+- [X] T048 [P] [US3] Add hook configuration in `.claude/plugin.json` with Claude Code native format:
   ```json
   {
     "hooks": {
@@ -273,7 +292,7 @@
   - Estimate severity based on section type (interfaces=BREAKING, behavior=COMPATIBLE, etc.)
   - Language-agnostic: works with Python, JS, Go, Rust, C++, any language
   - Must complete in <100ms for hook responsiveness
-- [ ] T049b [US3] Create `/rfc-analyze-impact` slash command in `.claude/commands/rfc-analyze-impact.md`:
+- [X] T049b [US3] Create `/rfc-analyze-impact` slash command in `.claude/commands/rfc-analyze-impact.md`:
   - Spawn analyzer agent that uses Serena MCP tools for deep semantic analysis
   - Use `find_symbol` to extract detailed signatures with full context
   - Use `find_referencing_symbols` to understand call graphs and dependencies
